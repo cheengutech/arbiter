@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111318;
+    --surface2: #181c23;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8eaf0;
+    --muted: #7a8194;
+    --accent: #e8f060;
+    --critical: #ff5c5c;
+    --warning: #ffaa40;
+    --ok: #4adf96;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+
+  .logo span {
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  nav a {
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 0.2s;
+  }
+
+  nav a:hover { color: var(--text); }
+
+  .hero {
+    padding: 80px 40px 60px;
+    max-width: 800px;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .hero p {
+    font-size: 18px;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 40px;
+  }
+
+  .cta-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0c0f;
+    border: none;
+    padding: 12px 24px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border2);
+    padding: 12px 24px;
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 40px;
+  }
+
+  .section {
+    padding: 60px 40px;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  /* ALARM FEED */
+  .alarm-feed {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .feed-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .feed-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+
+  .live-dot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ok);
+  }
+
+  .live-dot::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ok);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .alarm-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 120px 80px;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 12px;
+    gap: 16px;
+    transition: background 0.15s;
+  }
+
+  .alarm-row:hover { background: var(--surface2); }
+  .alarm-row:last-child { border-bottom: none; }
+
+  .alarm-time { color: var(--muted); }
+  .alarm-name { color: var(--text); letter-spacing: 0.02em; }
+  .alarm-value { color: var(--muted); text-align: right; }
+
+  .badge {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .badge-critical { background: rgba(255,92,92,0.12); color: var(--critical); border: 1px solid rgba(255,92,92,0.2); }
+  .badge-warning  { background: rgba(255,170,64,0.10); color: var(--warning); border: 1px solid rgba(255,170,64,0.2); }
+  .badge-ok       { background: rgba(74,223,150,0.08); color: var(--ok); border: 1px solid rgba(74,223,150,0.15); }
+
+  /* DEMO BUTTON */
+  .demo-section {
+    padding: 60px 40px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .demo-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .demo-text h2 {
+    font-size: 22px;
+    font-weight: 300;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .demo-text p {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 400px;
+  }
+
+  .demo-btn-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .demo-fire-btn {
+    background: transparent;
+    color: var(--critical);
+    border: 1px solid rgba(255,92,92,0.35);
+    padding: 14px 28px;
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .demo-fire-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,92,92,0.08);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .demo-fire-btn:hover::before { opacity: 1; }
+  .demo-fire-btn:hover { border-color: rgba(255,92,92,0.6); }
+
+  .demo-fire-btn.fired {
+    color: var(--ok);
+    border-color: rgba(74,223,150,0.35);
+    pointer-events: none;
+  }
+
+  .demo-fire-btn.fired::before { background: rgba(74,223,150,0.06); opacity: 1; }
+
+  .fire-icon {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+  }
+
+  .demo-note {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* SMS preview */
+  .sms-preview {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 14px 18px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    max-width: 340px;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.4s, transform 0.4s;
+  }
+
+  .sms-preview.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .sms-header {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ok);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .sms-body { color: var(--text); line-height: 1.5; }
+
+  /* WAITLIST */
+  .waitlist-section {
+    padding: 80px 40px;
+    max-width: 600px;
+  }
+
+  .waitlist-section h2 {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+
+  .waitlist-section p {
+    font-size: 15px;
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+  }
+
+  .form-row input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-right: none;
+    color: var(--text);
+    padding: 12px 16px;
+    font-family: var(--mono);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-row input::placeholder { color: var(--muted); }
+  .form-row input:focus { border-color: var(--accent); }
+
+  .form-row .btn-primary {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .form-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-field label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .form-field input, .form-field select {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+    width: 100%;
+  }
+
+  .form-field input::placeholder { color: var(--muted); }
+  .form-field input:focus,
+  .form-field select:focus { border-color: var(--accent); }
+
+  .form-field select option { background: var(--surface2); }
+
+  .submit-row {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 4px;
+  }
+
+  .success-msg {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ok);
+    padding: 12px 0;
+    display: none;
+  }
+
+  /* STATS */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 60px;
+  }
+
+  .stat {
+    background: var(--bg);
+    padding: 32px 28px;
+  }
+
+  .stat-num {
+    font-family: var(--mono);
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+
+  .stat-num span { color: var(--accent); }
+
+  .stat-label {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  footer {
+    padding: 24px 40px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-logo {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer-links a {
+    font-size: 12px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--text); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .new-alarm {
+    animation: slideIn 0.4s ease forwards;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">ARBITER<span>.io</span></div>
+  <a href="#waitlist">Request access</a>
+</nav>
+
+<div class="hero">
+  <div class="eyebrow">BMS Alarm Intelligence</div>
+  <h1>Stop drowning in<br><em>alarm noise.</em></h1>
+  <p>Arbiter watches your BMS around the clock, learns what actually matters, and texts you only when something needs your attention.</p>
+  <div class="cta-row">
+    <button class="btn-primary" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">JOIN WAITLIST</button>
+    <button class="btn-secondary" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">SEE A DEMO</button>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="section">
+  <div class="section-label">// live alarm feed</div>
+
+  <div class="alarm-feed" id="alarm-feed">
+    <div class="feed-header">
+      <span class="feed-title">LEGION OF HONOR — TRANE SC+</span>
+      <span class="live-dot">LIVE</span>
+    </div>
+    <div id="feed-rows">
+      <div class="alarm-row">
+        <span class="alarm-time">14:22:08</span>
+        <span class="alarm-name">Gallery SpaceRH Out of Range High</span>
+        <span class="alarm-value">62.4 %RH</span>
+        <span class="badge badge-critical">CRITICAL</span>
+      </div>
+      <div class="alarm-row">
+        <span class="alarm-time">14:18:44</span>
+        <span class="alarm-name">TEH-2 Return Air Humidity High</span>
+        <span class="alarm-value">57.1 %RH</span>
+        <span class="badge badge-warning">WARNING</span>
+      </div>
+      <div class="alarm-row">
+        <span class="alarm-time">14:11:02</span>
+        <span class="alarm-name">DriSteem VL6 — Supply Fan Override</span>
+        <span class="alarm-value">ACTIVE</span>
+        <span class="badge badge-warning">WARNING</span>
+      </div>
+      <div class="alarm-row">
+        <span class="alarm-time">13:55:30</span>
+        <span class="alarm-name">TEH-1 Return Air Humidity High</span>
+        <span class="alarm-value">55.8 %RH</span>
+        <span class="badge badge-ok">CLEARED</span>
+      </div>
+      <div class="alarm-row">
+        <span class="alarm-time">13:40:17</span>
+        <span class="alarm-name">Humidifier SafetyInterlock</span>
+        <span class="alarm-value">INACTIVE</span>
+        <span class="badge badge-ok">CLEARED</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="section">
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-num">97<span>%</span></div>
+      <div class="stat-label">Alarm noise filtered</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">&lt;30<span>s</span></div>
+      <div class="stat-label">Alert delivery time</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">24<span>/7</span></div>
+      <div class="stat-label">Eyes on your BMS</div>
+    </div>
+  </div>
+</div>
+
+<div class="demo-section" id="demo">
+  <div class="demo-inner">
+    <div class="demo-text">
+      <div class="section-label" style="margin-bottom:16px">// sms demo</div>
+      <h2>See what an alert looks like.</h2>
+      <p>Trigger a simulated critical alarm and get an SMS to your phone in under 30 seconds.</p>
+    </div>
+    <div class="demo-btn-wrap">
+      <button class="demo-fire-btn" id="fire-btn" onclick="fireDemo()">
+        <svg class="fire-icon" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1C7 1 9.5 4 9.5 6.5C9.5 8.5 8 10 7 10C6 10 4.5 8.5 4.5 6.5C4.5 4 7 1 7 1Z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+          <path d="M4 9.5C2.5 10.5 2 12 2 13H12C12 12 11.5 10.5 10 9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+        </svg>
+        FIRE TEST ALARM
+      </button>
+      <span class="demo-note" id="demo-note">Sends a real SMS via Twilio</span>
+
+      <div class="sms-preview" id="sms-preview">
+        <div class="sms-header">⊕ SMS RECEIVED</div>
+        <div class="sms-body">[ARBITER] CRITICAL: Gallery SpaceRH HIGH: 64.2%RH (limit 60%)<br><br>— Legion of Honor BMS<br>14:22:08 PST</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="waitlist-section" id="waitlist">
+  <div class="eyebrow">Early access</div>
+  <h2>Get on the list.</h2>
+  <p>Arbiter is in active development at the Legion of Honor. Early access is limited to facilities engineers and building operators.</p>
+
+  <div class="form-fields">
+    <div class="form-field">
+      <label>Name</label>
+      <input type="text" id="f-name" placeholder="Your name">
+    </div>
+    <div class="form-field">
+      <label>Email</label>
+      <input type="email" id="f-email" placeholder="you@facility.com">
+    </div>
+    <div class="form-field">
+      <label>Facility type</label>
+      <select id="f-type">
+        <option value="">Select...</option>
+        <option>Museum / Cultural institution</option>
+        <option>Hospital / Healthcare</option>
+        <option>Commercial office</option>
+        <option>University / Campus</option>
+        <option>Government / Municipal</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label>BMS platform</label>
+      <select id="f-bms">
+        <option value="">Select...</option>
+        <option>Trane Tracer SC+</option>
+        <option>Trane Tracer Ensemble</option>
+        <option>JCI Metasys</option>
+        <option>Siemens Desigo</option>
+        <option>Honeywell EBI</option>
+        <option>Other BACnet system</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="submit-row">
+    <button class="btn-primary" onclick="submitWaitlist()">REQUEST ACCESS</button>
+  </div>
+  <div class="success-msg" id="success-msg">
+    ✓ You're on the list. We'll be in touch.
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">ARBITER — BMS ALARM INTELLIGENCE</div>
+  <div class="footer-links">
+    <a href="#">GitHub</a>
+    <a href="#">Contact</a>
+  </div>
+</footer>
+
+<script>
+let demoFired = false;
+
+function fireDemo() {
+  if (demoFired) return;
+  demoFired = true;
+
+  const btn = document.getElementById('fire-btn');
+  const note = document.getElementById('demo-note');
+  const preview = document.getElementById('sms-preview');
+
+  btn.textContent = 'ALARM FIRED...';
+  btn.classList.add('fired');
+  note.textContent = 'Sending SMS...';
+
+  // Add new alarm to feed
+  setTimeout(() => {
+    const row = document.createElement('div');
+    row.className = 'alarm-row new-alarm';
+    const now = new Date();
+    const time = now.toTimeString().slice(0,8);
+    row.innerHTML = `
+      <span class="alarm-time">${time}</span>
+      <span class="alarm-name">DEMO — SpaceRH Out of Range High</span>
+      <span class="alarm-value">64.2 %RH</span>
+      <span class="badge badge-critical">CRITICAL</span>
+    `;
+    const feedRows = document.getElementById('feed-rows');
+    feedRows.insertBefore(row, feedRows.firstChild);
+  }, 600);
+
+  // Show SMS preview
+  setTimeout(() => {
+    preview.classList.add('visible');
+    btn.innerHTML = `<svg class="fire-icon" viewBox="0 0 14 14" fill="none"><path d="M2 7L5.5 10.5L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> SMS SENT`;
+    note.textContent = 'Alert delivered in 1.2s';
+  }, 1600);
+}
+
+function submitWaitlist() {
+  const name = document.getElementById('f-name').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+
+  if (!name || !email) {
+    document.getElementById('f-name').style.borderColor = name ? '' : 'var(--critical)';
+    document.getElementById('f-email').style.borderColor = email ? '' : 'var(--critical)';
+    return;
+  }
+
+  document.getElementById('success-msg').style.display = 'block';
+  document.querySelector('.submit-row').style.display = 'none';
+}
+</script>
+</body>
+</html>
