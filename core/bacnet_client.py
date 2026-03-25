@@ -35,14 +35,14 @@ from bacpypes3.local.device import DeviceObject
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
-load_dotenv('/home/jwpark05/.env')
+load_dotenv()
 
-PI_IP          = "100.84.232.109"   # Pi Tailscale IP
-PI_PORT        = 47820              # local port for poller
-SIM_IP         = "100.101.170.34"   # Mac Mini Tailscale IP (simulator)
-UC600_PORT     = 47808
-DRISTEEM_PORT  = 47809
-POLL_INTERVAL  = 60                 # seconds
+PI_IP          = os.getenv("PI_IP", "100.84.232.109") # Pi Tailscale IP
+PI_PORT        = 47820 # local port for poller
+SIM_IP         = os.getenv("SIM_IP", "100.101.170.34") # Mac Mini Tailscale IP (simulator)
+UC600_PORT     = 47808 # UC600 port
+DRISTEEM_PORT  = 47809 # DriSteem port
+POLL_INTERVAL  = 60        # seconds
 
 # Twilio
 TWILIO_SID     = os.getenv("TWILIO_ACCOUNT_SID")
