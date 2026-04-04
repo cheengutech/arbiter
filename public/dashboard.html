@@ -657,7 +657,7 @@
 
 <script>
 // ─── State ───────────────────────────────────────────────────────────────────
-const ZONES = {
+var ZONES = {
   '2-01': { label: 'Gallery 2-01', rh: 52.3, tmp: 67.9, rhc: 50.4 },
   '2-03': { label: 'Gallery 2-03', rh: 52.0, tmp: 68.3, rhc:  0.0 },
   '2-04': { label: 'Gallery 2-04', rh: 56.2, tmp: 68.2, rhc: 70.9 },
@@ -668,20 +668,116 @@ const ZONES = {
   '2-10': { label: 'Gallery 2-10 (AFGA)', rh: 50.6, tmp: 58.8, rhc: 38.8 },
 };
 
-// Alarm log (newest first)
-const alarmLog = [
-  { time: getTime(-2),  zone: '2-07', name: 'Gallery 2-07 Space Humidity', value: '68.2 %RH', severity: 'CRITICAL', active: false },
-  { time: getTime(-18), zone: '2-05', name: 'Gallery 2-05 Space Humidity', value: '65.6 %RH', severity: 'CRITICAL', active: false },
-  { time: getTime(-34), zone: '2-05', name: 'Gallery 2-05 Space Humidity', value: '61.0 %RH', severity: 'CRITICAL', active: false },
-  { time: getTime(-52), zone: '2-04', name: 'Gallery 2-04 Space Humidity', value: '60.8 %RH', severity: 'CRITICAL', active: false },
-];
+var alarmLog = [];
+var alarmInProgress = false;
+var MAX_ALARM_LOG = 100;
 
-let alarmInProgress = false;
+// ─── WebSocket ───────────────────────────────────────────────────────────────
+var WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws/alarms';
+var ws = null;
+var reconnectTimer = null;
 
-function getTime(offsetMins) {
-  const d = new Date(Date.now() + offsetMins * 60000);
-  return d.toTimeString().slice(0,8);
+function formatTime(isoStr) {
+  try { return new Date(isoStr).toTimeString().slice(0, 8); }
+  catch (e) { return '--:--:--'; }
 }
+
+function formatValue(alarm) {
+  if (alarm.value == null) return alarm.state;
+  if (typeof alarm.value === 'number') return alarm.value.toFixed(1) + (alarm.unit ? ' ' + alarm.unit : '');
+  return String(alarm.value) + (alarm.unit ? ' ' + alarm.unit : '');
+}
+
+function wsAlarmToLog(a) {
+  // Extract zone id from point name like "Gallery 2-05 RH" or "SpaceRH"
+  var zoneMatch = a.point ? a.point.match(/(\d-\d{2})/) : null;
+  return {
+    time: formatTime(a.timestamp),
+    zone: zoneMatch ? zoneMatch[1] : '',
+    name: a.description || a.point,
+    value: formatValue(a),
+    severity: a.severity === 'CRITICAL' ? 'CRITICAL' : (a.severity === 'WARNING' ? 'WARNING' : 'INFO'),
+    active: a.state === 'ACTIVE',
+    raw: a,
+  };
+}
+
+function updateZoneFromAlarm(alarm) {
+  // Update gallery zone RH from live alarm data
+  if (!alarm.point) return;
+  var m = alarm.point.match(/Gallery (\d-\d{2}) RH/);
+  if (m && ZONES[m[1]] && typeof alarm.value === 'number') {
+    ZONES[m[1]].rh = alarm.value;
+    renderFloorPlan();
+  }
+}
+
+function handleAlarmEvent(alarm, animate) {
+  var entry = wsAlarmToLog(alarm);
+  alarmLog.unshift(entry);
+  if (alarmLog.length > MAX_ALARM_LOG) alarmLog.length = MAX_ALARM_LOG;
+
+  updateZoneFromAlarm(alarm);
+
+  if (animate) {
+    alarmInProgress = true;
+    renderAlarms();
+    setTimeout(function() { alarmInProgress = false; }, 1000);
+  } else {
+    renderAlarms();
+  }
+}
+
+function handleHistory(alarms) {
+  alarmLog = [];
+  for (var i = 0; i < alarms.length; i++) {
+    alarmLog.push(wsAlarmToLog(alarms[i]));
+    updateZoneFromAlarm(alarms[i]);
+  }
+  renderAlarms();
+  renderFloorPlan();
+}
+
+function updateLiveIndicator(connected) {
+  var el = document.querySelector('.live-indicator');
+  if (!el) return;
+  el.style.color = connected ? 'var(--ok)' : 'var(--critical)';
+  var dot = el.querySelector('.live-dot');
+  if (dot) dot.style.background = connected ? 'var(--ok)' : 'var(--critical)';
+}
+
+function connectWS() {
+  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = function() {
+    updateLiveIndicator(true);
+    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+  };
+
+  ws.onmessage = function(e) {
+    var msg;
+    try { msg = JSON.parse(e.data); } catch (_) { return; }
+
+    if (msg.type === 'history' && Array.isArray(msg.alarms)) {
+      handleHistory(msg.alarms);
+    } else if (msg.id && msg.timestamp) {
+      handleAlarmEvent(msg, true);
+    }
+  };
+
+  ws.onclose = function() {
+    updateLiveIndicator(false);
+    reconnectTimer = setTimeout(connectWS, 3000);
+  };
+
+  ws.onerror = function() { ws.close(); };
+}
+
+setInterval(function() {
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send('ping');
+}, 30000);
 
 // ─── Clock ───────────────────────────────────────────────────────────────────
 function updateClock() {
@@ -705,15 +801,15 @@ function zoneStateLabel(rh) {
 
 // ─── Render floor plan ───────────────────────────────────────────────────────
 function renderFloorPlan() {
-  Object.entries(ZONES).forEach(([id, z]) => {
-    const key = id.replace('-', '');
-    const group = document.getElementById(`zone-2${key.slice(1)}`);
-    const rhEl  = document.getElementById(`rh-${key}`);
-    const tmpEl = document.getElementById(`tmp-${key}`);
+  Object.keys(ZONES).forEach(function(id) {
+    var z = ZONES[id];
+    var key = id.replace('-', '');
+    var group = document.getElementById('zone-2' + key.slice(1));
+    var rhEl  = document.getElementById('rh-' + key);
+    var tmpEl = document.getElementById('tmp-' + key);
 
     if (!group) return;
 
-    // Remove all state classes
     group.classList.remove('state-ok', 'state-warn', 'state-alarm');
     group.classList.add(zoneState(z.rh));
 
@@ -724,36 +820,37 @@ function renderFloorPlan() {
 
 // ─── Render alarm list ────────────────────────────────────────────────────────
 function renderAlarms() {
-  const list = document.getElementById('alarm-list');
+  var list = document.getElementById('alarm-list');
   list.innerHTML = '';
 
-  let crits = 0, warns = 0, cleared = 0;
+  var crits = 0, warns = 0, cleared = 0;
 
-  alarmLog.forEach((a, i) => {
+  alarmLog.forEach(function(a, i) {
     if (a.severity === 'CRITICAL') {
       if (a.active) crits++; else cleared++;
-    } else {
+    } else if (a.severity === 'WARNING') {
       if (a.active) warns++; else cleared++;
+    } else {
+      cleared++;
     }
 
-    const el = document.createElement('div');
+    var el = document.createElement('div');
     el.className = 'alarm-item' + (i === 0 && alarmInProgress ? ' is-new' : '');
 
-    const badgeClass = a.active
+    var bc = a.active
       ? (a.severity === 'CRITICAL' ? 'badge-critical' : 'badge-warning')
       : 'badge-ok';
-    const badgeText = a.active ? a.severity : 'CLEARED';
+    var bt = a.active ? a.severity : 'CLEARED';
 
-    el.innerHTML = `
-      <div class="alarm-item-header">
-        <div class="alarm-item-name">${a.name}</div>
-        <div class="alarm-item-time">${a.time}</div>
-      </div>
-      <div class="alarm-item-value">
-        <span>${a.value}</span>
-        <span class="badge ${badgeClass}">${badgeText}</span>
-      </div>
-    `;
+    el.innerHTML =
+      '<div class="alarm-item-header">' +
+        '<div class="alarm-item-name">' + a.name + '</div>' +
+        '<div class="alarm-item-time">' + a.time + '</div>' +
+      '</div>' +
+      '<div class="alarm-item-value">' +
+        '<span>' + a.value + '</span>' +
+        '<span class="badge ' + bc + '">' + bt + '</span>' +
+      '</div>';
     list.appendChild(el);
   });
 
@@ -763,93 +860,44 @@ function renderAlarms() {
 }
 
 // ─── Tooltip ─────────────────────────────────────────────────────────────────
-const tooltip = document.getElementById('tooltip');
+var tooltip = document.getElementById('tooltip');
 
-document.querySelectorAll('.zone-room').forEach(el => {
-  el.addEventListener('mouseenter', (e) => {
-    const zoneId = el.dataset.zone;
-    const z = ZONES[zoneId];
+document.querySelectorAll('.zone-room').forEach(function(el) {
+  el.addEventListener('mouseenter', function(e) {
+    var zoneId = el.dataset.zone;
+    var z = ZONES[zoneId];
     if (!z) return;
 
-    const status = zoneStateLabel(z.rh);
+    var status = zoneStateLabel(z.rh);
     document.getElementById('tt-name').textContent = z.label;
     document.getElementById('tt-rh').textContent   = z.rh.toFixed(1) + ' %RH';
     document.getElementById('tt-tmp').textContent  = z.tmp.toFixed(1) + ' °F';
     document.getElementById('tt-rhc').textContent  = z.rhc.toFixed(1) + '%';
-    const ttStatus = document.getElementById('tt-status');
+    var ttStatus = document.getElementById('tt-status');
     ttStatus.textContent  = status.text;
     ttStatus.style.color  = status.color;
 
     tooltip.classList.add('visible');
   });
 
-  el.addEventListener('mousemove', (e) => {
+  el.addEventListener('mousemove', function(e) {
     tooltip.style.left = (e.clientX + 16) + 'px';
     tooltip.style.top  = (e.clientY - 10) + 'px';
   });
 
-  el.addEventListener('mouseleave', () => {
+  el.addEventListener('mouseleave', function() {
     tooltip.classList.remove('visible');
   });
 });
 
 function selectZone(id) {
-  // Could expand to show zone detail panel — placeholder
+  // Could expand to show zone detail panel
 }
 
-// ─── Simulate live data drift ─────────────────────────────────────────────────
-function driftValues() {
-  Object.keys(ZONES).forEach(id => {
-    const z = ZONES[id];
-    // Small random drift
-    z.rh  = Math.max(45, Math.min(65, z.rh  + (Math.random() - 0.48) * 0.4));
-    z.tmp = Math.max(62, Math.min(74, z.tmp + (Math.random() - 0.5)  * 0.2));
-    // RHC valve responds to RH
-    const over = z.rh - 50.0;
-    z.rhc = Math.max(0, Math.min(100, 50 + over * 8 + (Math.random()-0.5)*3));
-  });
-
-  // Check for new alarms
-  Object.entries(ZONES).forEach(([id, z]) => {
-    if (z.rh >= 60.0) {
-      // Fire alarm if not already in log for this zone as active
-      const existing = alarmLog.find(a => a.zone === id && a.active);
-      if (!existing) {
-        alarmLog.unshift({
-          time: new Date().toTimeString().slice(0,8),
-          zone: id,
-          name: `Gallery ${id} Space Humidity`,
-          value: z.rh.toFixed(1) + ' %RH',
-          severity: 'CRITICAL',
-          active: true,
-        });
-        alarmInProgress = true;
-        setTimeout(() => { alarmInProgress = false; }, 1000);
-      } else {
-        existing.value = z.rh.toFixed(1) + ' %RH';
-      }
-    } else {
-      // Clear active alarm if exists
-      const existing = alarmLog.find(a => a.zone === id && a.active);
-      if (existing) existing.active = false;
-    }
-  });
-
-  // Update status bar
-  const sa_hum = 85 + Math.random() * 4;
-  document.getElementById('sb-sa-hum').textContent = sa_hum.toFixed(1) + '%';
-  document.getElementById('sb-sa-hum').className = 'status-value warn';
-
-  renderFloorPlan();
-  renderAlarms();
-}
-
-// ─── Initial render ────────────────────────────────────────────────────────────
+// ─── Initial render + connect ─────────────────────────────────────────────────
 renderFloorPlan();
 renderAlarms();
-
-// Drift every 8 seconds
-setInterval(driftValues, 8000);
+connectWS();
 </script>
 </body>
 </html>

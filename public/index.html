@@ -554,36 +554,7 @@
       <span class="live-dot">LIVE</span>
     </div>
     <div id="feed-rows">
-      <div class="alarm-row">
-        <span class="alarm-time">14:22:08</span>
-        <span class="alarm-name">Gallery SpaceRH Out of Range High</span>
-        <span class="alarm-value">62.4 %RH</span>
-        <span class="badge badge-critical">CRITICAL</span>
-      </div>
-      <div class="alarm-row">
-        <span class="alarm-time">14:18:44</span>
-        <span class="alarm-name">TEH-2 Return Air Humidity High</span>
-        <span class="alarm-value">57.1 %RH</span>
-        <span class="badge badge-warning">WARNING</span>
-      </div>
-      <div class="alarm-row">
-        <span class="alarm-time">14:11:02</span>
-        <span class="alarm-name">DriSteem VL6 — Supply Fan Override</span>
-        <span class="alarm-value">ACTIVE</span>
-        <span class="badge badge-warning">WARNING</span>
-      </div>
-      <div class="alarm-row">
-        <span class="alarm-time">13:55:30</span>
-        <span class="alarm-name">TEH-1 Return Air Humidity High</span>
-        <span class="alarm-value">55.8 %RH</span>
-        <span class="badge badge-ok">CLEARED</span>
-      </div>
-      <div class="alarm-row">
-        <span class="alarm-time">13:40:17</span>
-        <span class="alarm-name">Humidifier SafetyInterlock</span>
-        <span class="alarm-value">INACTIVE</span>
-        <span class="badge badge-ok">CLEARED</span>
-      </div>
+      <!-- populated by WebSocket -->
     </div>
   </div>
 </div>
@@ -689,6 +660,118 @@
 </footer>
 
 <script>
+// ─── WebSocket Alarm Feed ─────────────────────────────────────────────────────
+const WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws/alarms';
+const MAX_FEED_ROWS = 50;
+let ws = null;
+let reconnectTimer = null;
+
+function formatTime(isoStr) {
+  try {
+    const d = new Date(isoStr);
+    return d.toTimeString().slice(0, 8);
+  } catch (e) {
+    return '--:--:--';
+  }
+}
+
+function badgeClass(alarm) {
+  if (alarm.state === 'CLEARED') return 'badge-ok';
+  if (alarm.severity === 'CRITICAL') return 'badge-critical';
+  return 'badge-warning';
+}
+
+function badgeText(alarm) {
+  if (alarm.state === 'CLEARED') return 'CLEARED';
+  return alarm.severity;
+}
+
+function formatValue(alarm) {
+  if (alarm.value == null) return alarm.state;
+  if (typeof alarm.value === 'number') return alarm.value.toFixed(1) + (alarm.unit ? ' ' + alarm.unit : '');
+  return String(alarm.value) + (alarm.unit ? ' ' + alarm.unit : '');
+}
+
+function createAlarmRow(alarm, animate) {
+  const row = document.createElement('div');
+  row.className = 'alarm-row' + (animate ? ' new-alarm' : '');
+  row.innerHTML =
+    '<span class="alarm-time">' + formatTime(alarm.timestamp) + '</span>' +
+    '<span class="alarm-name">' + (alarm.description || alarm.point) + '</span>' +
+    '<span class="alarm-value">' + formatValue(alarm) + '</span>' +
+    '<span class="badge ' + badgeClass(alarm) + '">' + badgeText(alarm) + '</span>';
+  return row;
+}
+
+function trimFeed() {
+  const feedRows = document.getElementById('feed-rows');
+  while (feedRows.children.length > MAX_FEED_ROWS) {
+    feedRows.removeChild(feedRows.lastChild);
+  }
+}
+
+function populateFeed(alarms) {
+  const feedRows = document.getElementById('feed-rows');
+  feedRows.innerHTML = '';
+  alarms.forEach(function(a) {
+    feedRows.appendChild(createAlarmRow(a, false));
+  });
+}
+
+function prependAlarm(alarm) {
+  const feedRows = document.getElementById('feed-rows');
+  feedRows.insertBefore(createAlarmRow(alarm, true), feedRows.firstChild);
+  trimFeed();
+}
+
+function updateLiveDot(connected) {
+  var dot = document.querySelector('.live-dot');
+  if (dot) {
+    dot.style.color = connected ? 'var(--ok)' : 'var(--critical)';
+    dot.textContent = connected ? 'LIVE' : 'OFFLINE';
+  }
+}
+
+function connectWS() {
+  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = function() {
+    updateLiveDot(true);
+    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+  };
+
+  ws.onmessage = function(e) {
+    var msg;
+    try { msg = JSON.parse(e.data); } catch (_) { return; }
+
+    if (msg.type === 'history' && Array.isArray(msg.alarms)) {
+      populateFeed(msg.alarms);
+    } else if (msg.id && msg.timestamp) {
+      // Single alarm event
+      prependAlarm(msg);
+    }
+  };
+
+  ws.onclose = function() {
+    updateLiveDot(false);
+    reconnectTimer = setTimeout(connectWS, 3000);
+  };
+
+  ws.onerror = function() {
+    ws.close();
+  };
+}
+
+// Keep-alive ping every 30s
+setInterval(function() {
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send('ping');
+}, 30000);
+
+connectWS();
+
+// ─── Demo fire button ─────────────────────────────────────────────────────────
 let demoFired = false;
 
 function fireDemo() {
@@ -703,26 +786,9 @@ function fireDemo() {
   btn.classList.add('fired');
   note.textContent = 'Sending SMS...';
 
-  // Add new alarm to feed
-  setTimeout(() => {
-    const row = document.createElement('div');
-    row.className = 'alarm-row new-alarm';
-    const now = new Date();
-    const time = now.toTimeString().slice(0,8);
-    row.innerHTML = `
-      <span class="alarm-time">${time}</span>
-      <span class="alarm-name">DEMO — SpaceRH Out of Range High</span>
-      <span class="alarm-value">64.2 %RH</span>
-      <span class="badge badge-critical">CRITICAL</span>
-    `;
-    const feedRows = document.getElementById('feed-rows');
-    feedRows.insertBefore(row, feedRows.firstChild);
-  }, 600);
-
-  // Show SMS preview
-  setTimeout(() => {
+  setTimeout(function() {
     preview.classList.add('visible');
-    btn.innerHTML = `<svg class="fire-icon" viewBox="0 0 14 14" fill="none"><path d="M2 7L5.5 10.5L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> SMS SENT`;
+    btn.innerHTML = '<svg class="fire-icon" viewBox="0 0 14 14" fill="none"><path d="M2 7L5.5 10.5L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> SMS SENT';
     note.textContent = 'Alert delivered in 1.2s';
   }, 1600);
 }
