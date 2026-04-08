@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: arbiter-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    plan: starter
+    envVars:
+      - key: SIM_TICK_INTERVAL
+        value: "10"
+      - key: MAX_ALARM_HISTORY
+        value: "500"
