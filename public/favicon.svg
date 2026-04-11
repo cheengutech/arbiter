@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" fill="#00040e"/>
+
   <!-- wings -->
   <polygon points="16,13 2,9 1,14 6,17 16,16" fill="#0d1e38"/>
   <polygon points="16,13 30,9 31,14 26,17 16,16" fill="#0d1e38"/>
