@@ -1038,46 +1038,52 @@ function fireDemo(){
   if(!canvas)return;
   var ctx=canvas.getContext('2d');
   var rotAngle=0;
+  var now=Date.now();
 
-  var BUILDINGS=[
-    {lat:37.782,lng:-122.510,label:'Legion of Honor, SF',primary:true},
-    {lat:40.748,lng:-73.986,label:'New York'},
-    {lat:51.507,lng:-0.127,label:'London'},
-    {lat:35.689,lng:139.692,label:'Tokyo'},
-    {lat:48.856,lng:2.352,label:'Paris'},
-    {lat:-33.869,lng:151.209,label:'Sydney'},
-    {lat:25.204,lng:55.270,label:'Dubai'},
-    {lat:1.352,lng:103.820,label:'Singapore'},
-    {lat:43.651,lng:-79.347,label:'Toronto'},
-    {lat:52.520,lng:13.405,label:'Berlin'},
-    {lat:19.432,lng:-99.133,label:'Mexico City'},
-    {lat:55.751,lng:37.618,label:'Moscow'},
+  // Named landmark locations [lat, lng, label, type, color]
+  // types: museum, landmark, datacenter, hospital
+  var PINS=[
+    {lat:37.782, lng:-122.510, label:'Legion of Honor, SF',    type:'museum',     c:'#00e5ff', primary:true},
+    {lat:37.773, lng:-122.419, label:'SF MOMA',                type:'museum',     c:'#00e5ff'},
+    {lat:40.748, lng:-74.006,  label:'Empire State Bldg',      type:'landmark',   c:'#7ec8ff'},
+    {lat:40.758, lng:-73.985,  label:'NYC Data Center',        type:'datacenter', c:'#00e5a0'},
+    {lat:48.858, lng:2.294,    label:'Eiffel Tower',           type:'landmark',   c:'#7ec8ff'},
+    {lat:51.501, lng:-0.124,   label:'London',                 type:'landmark',   c:'#7ec8ff'},
+    {lat:35.689, lng:139.692,  label:'Tokyo',                  type:'datacenter', c:'#00e5a0'},
+    {lat:29.760, lng:-95.369,  label:'Houston Data Center',    type:'datacenter', c:'#00e5a0'},
+    {lat:32.776, lng:-96.797,  label:'Dallas Data Center',     type:'datacenter', c:'#00e5a0'},
+    {lat:33.749, lng:-84.388,  label:'Atlanta',                type:'datacenter', c:'#00e5a0'},
+    {lat:47.606, lng:-122.332, label:'Seattle',                type:'landmark',   c:'#7ec8ff'},
+    {lat:41.878, lng:-87.630,  label:'Chicago',                type:'landmark',   c:'#7ec8ff'},
+    {lat:34.052, lng:-118.244, label:'Los Angeles',            type:'datacenter', c:'#00e5a0'},
+    {lat:51.507, lng:-0.127,   label:'London Hospital',        type:'hospital',   c:'#ff4466'},
+    {lat:48.856, lng:2.352,    label:'Paris Hospital',         type:'hospital',   c:'#ff4466'},
+    {lat:52.520, lng:13.405,   label:'Berlin',                 type:'landmark',   c:'#7ec8ff'},
+    {lat:25.204, lng:55.270,   label:'Dubai',                  type:'datacenter', c:'#00e5a0'},
+    {lat:1.352,  lng:103.820,  label:'Singapore',              type:'datacenter', c:'#00e5a0'},
+    {lat:-33.869,lng:151.209,  label:'Sydney',                 type:'landmark',   c:'#7ec8ff'},
+    {lat:19.432, lng:-99.133,  label:'Mexico City',            type:'hospital',   c:'#ff4466'},
+    {lat:-23.550,lng:-46.633,  label:'São Paulo',              type:'datacenter', c:'#00e5a0'},
+    {lat:55.751, lng:37.618,   label:'Moscow',                 type:'landmark',   c:'#7ec8ff'},
+    {lat:43.651, lng:-79.347,  label:'Toronto',                type:'landmark',   c:'#7ec8ff'},
   ];
 
-  // rough land bounding boxes [minLat,maxLat,minLng,maxLng]
-  var LAND=[
-    [24,70,-168,-52],[5,15,-90,-77],[-55,13,-82,-34],
-    [35,72,-12,42],[34,72,-12,42],[1,36,26,60],
-    [-36,38,-18,52],[10,78,26,180],[-45,-10,112,154],
-    [60,85,-65,-14],[30,47,128,148],[-10,6,95,141],
-    [49,60,-8,2],[55,72,4,32],[36,47,-10,3],
+  // Continent outline polylines [lat,lng] arrays
+  // Simplified but recognizable coastlines
+  var CONTINENTS=[
+    // North America
+    [[71,-141],[70,-130],[60,-140],[55,-130],[50,-127],[48,-124],[42,-124],[37,-122],[32,-117],[25,-110],[22,-106],[20,-104],[15,-92],[10,-84],[8,-78],[8,-76],[10,-75],[15,-83],[18,-87],[20,-90],[22,-90],[20,-87],[16,-86],[15,-84],[14,-82],[13,-83],[11,-84],[10,-82],[8,-80],[8,-77],[10,-75],[12,-72],[14,-62],[12,-62],[13,-60],[15,-59],[18,-63],[20,-72],[22,-73],[24,-76],[26,-78],[25,-80],[24,-82],[25,-88],[22,-91],[20,-91],[20,-89],[18,-92],[16,-92],[14,-90],[13,-89],[14,-86],[13,-84],[12,-83],[12,-81],[14,-83],[18,-88],[20,-87],[22,-88],[24,-88],[26,-80],[28,-80],[30,-80],[32,-79],[33,-78],[34,-77],[35,-75],[36,-74],[38,-74],[40,-74],[41,-72],[42,-70],[44,-68],[46,-66],[47,-68],[48,-70],[49,-64],[50,-56],[52,-56],[53,-60],[56,-60],[58,-62],[60,-64],[62,-68],[60,-70],[58,-72],[55,-74],[53,-78],[50,-80],[52,-85],[55,-83],[58,-82],[60,-80],[62,-78],[64,-76],[66,-72],[68,-68],[70,-68],[71,-71],[72,-74],[72,-78],[70,-82],[68,-84],[66,-86],[64,-88],[66,-92],[68,-96],[70,-100],[72,-104],[72,-110],[70,-120],[70,-130],[71,-141]],
+    // South America
+    [[-5,-82],[-3,-80],[-2,-78],[-1,-80],[0,-80],[0,-78],[2,-77],[4,-76],[6,-77],[8,-77],[10,-75],[12,-72],[11,-70],[10,-63],[10,-60],[8,-62],[6,-62],[5,-60],[4,-52],[2,-50],[0,-50],[-2,-44],[-4,-38],[-6,-35],[-8,-35],[-10,-38],[-12,-38],[-14,-39],[-16,-40],[-18,-40],[-20,-40],[-22,-42],[-24,-44],[-26,-48],[-28,-50],[-30,-50],[-32,-52],[-34,-54],[-36,-58],[-38,-60],[-40,-62],[-42,-64],[-44,-66],[-46,-66],[-48,-66],[-50,-68],[-52,-70],[-54,-68],[-56,-68],[-55,-66],[-54,-64],[-52,-58],[-50,-52],[-48,-50],[-46,-52],[-44,-50],[-42,-52],[-40,-50],[-38,-44],[-35,-38],[-30,-28],[-26,-20],[-22,-22],[-20,-40],[-18,-40],[-16,-38],[-14,-40],[-12,-38],[-10,-38],[-8,-35],[-6,-35],[-4,-38],[-2,-44],[0,-50],[2,-50],[4,-52],[5,-60],[6,-62],[8,-62],[10,-60],[10,-63],[11,-70],[12,-72],[10,-75],[8,-77],[6,-77],[4,-76],[2,-77],[0,-78],[-1,-80],[-2,-78],[-3,-80],[-5,-82]],
+    // Europe
+    [[71,28],[70,20],[68,14],[65,10],[62,5],[58,5],[56,8],[55,10],[54,9],[54,7],[52,4],[51,2],[50,2],[48,0],[46,-2],[44,-2],[42,-2],[40,0],[38,-2],[36,-6],[36,-8],[38,-8],[40,-8],[42,-8],[44,-2],[46,-2],[48,0],[50,2],[52,4],[54,7],[54,9],[55,10],[56,8],[58,5],[60,5],[62,5],[65,10],[68,14],[70,20],[71,28]],
+    // Africa
+    [[36,10],[34,10],[30,32],[22,38],[12,44],[2,42],[-10,40],[-24,36],[-34,28],[-36,20],[-34,18],[-26,14],[-16,12],[-6,10],[0,10],[6,2],[4,-2],[2,-4],[0,-6],[-2,-4],[0,2],[4,6],[8,2],[10,6],[12,14],[14,16],[16,14],[18,16],[20,18],[22,18],[24,20],[26,22],[28,32],[30,32],[34,10],[36,10]],
+    // Asia (simplified)
+    [[70,140],[65,140],[60,140],[55,132],[50,140],[45,135],[40,130],[35,128],[30,122],[25,120],[22,114],[20,110],[15,108],[10,104],[5,103],[2,104],[0,108],[-5,110],[-8,115],[-10,120],[-8,125],[-5,120],[0,110],[5,103],[10,100],[15,100],[20,100],[25,92],[28,90],[26,88],[22,88],[20,86],[16,82],[14,80],[10,78],[8,77],[8,78],[10,80],[12,80],[14,80],[16,82],[18,84],[20,86],[22,88],[26,88],[28,90],[30,88],[32,74],[34,72],[36,72],[38,68],[36,62],[34,60],[36,58],[38,56],[40,56],[42,54],[44,52],[46,50],[48,46],[50,44],[52,42],[54,42],[56,40],[58,36],[60,30],[62,24],[64,22],[66,26],[68,26],[70,30],[72,44],[72,60],[70,72],[68,76],[66,84],[68,88],[70,100],[70,120],[70,140]],
+    // Australia
+    [[-14,132],[-14,136],[-14,140],[-16,136],[-18,122],[-20,116],[-24,114],[-28,114],[-32,116],[-34,118],[-36,136],[-38,140],[-38,146],[-36,150],[-34,152],[-32,152],[-28,154],[-24,152],[-22,150],[-18,148],[-16,146],[-14,136],[-14,132]],
   ];
-
-  function isLand(lat,lng){
-    for(var i=0;i<LAND.length;i++){
-      var b=LAND[i];
-      if(lat>=b[0]&&lat<=b[1]&&lng>=b[2]&&lng<=b[3])return true;
-    }
-    return false;
-  }
-
-  // precompute dot grid
-  var dots=[];
-  for(var lat=-80;lat<=80;lat+=4.5){
-    for(var lng=-180;lng<=180;lng+=5.5){
-      if(isLand(lat,lng))dots.push({lat:lat,lng:lng});
-    }
-  }
 
   function resize(){
     canvas.width=canvas.offsetWidth||500;
@@ -1088,7 +1094,7 @@ function fireDemo(){
 
   function project(lat,lng,W,H){
     var cx=W*0.5,cy=H*0.5;
-    var rx=Math.min(W,H)*0.42,ry=Math.min(W,H)*0.38;
+    var rx=Math.min(W,H)*0.43,ry=Math.min(W,H)*0.40;
     var lngR=lng+rotAngle;
     while(lngR>180)lngR-=360;while(lngR<-180)lngR+=360;
     var theta=lngR*(Math.PI/180);
@@ -1099,60 +1105,122 @@ function fireDemo(){
       x:cx+rx*Math.sin(theta)*cosPhi,
       y:cy-ry*Math.sin(phi),
       depth:depth,
-      visible:depth>-0.15
+      visible:depth>-0.05
     };
   }
 
   function draw(){
     var W=canvas.width,H=canvas.height;
+    now=Date.now();
     ctx.clearRect(0,0,W,H);
 
     // bg glow
-    var grad=ctx.createRadialGradient(W*0.5,H*0.5,10,W*0.5,H*0.5,Math.min(W,H)*0.52);
-    grad.addColorStop(0,'rgba(0,80,180,0.07)');
+    var grad=ctx.createRadialGradient(W*0.5,H*0.5,10,W*0.5,H*0.5,Math.min(W,H)*0.54);
+    grad.addColorStop(0,'rgba(0,80,180,0.08)');
     grad.addColorStop(1,'transparent');
     ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
 
-    // land dots
-    for(var i=0;i<dots.length;i++){
-      var d=dots[i];
-      var p=project(d.lat,d.lng,W,H);
-      if(!p.visible)continue;
-      var alpha=Math.max(0,(p.depth+0.15)*0.55);
-      ctx.beginPath();ctx.arc(p.x,p.y,1.3,0,Math.PI*2);
-      ctx.fillStyle='rgba(160,200,255,'+alpha.toFixed(2)+')';
-      ctx.fill();
+    // globe outline circle
+    ctx.beginPath();ctx.arc(W*0.5,H*0.5,Math.min(W,H)*0.43,0,Math.PI*2);
+    ctx.strokeStyle='rgba(0,120,220,0.12)';ctx.lineWidth=1;ctx.stroke();
+
+    // latitude grid lines
+    for(var glat=-60;glat<=60;glat+=30){
+      ctx.beginPath();
+      var first=true;
+      for(var glng=-180;glng<=180;glng+=5){
+        var gp=project(glat,glng,W,H);
+        if(!gp.visible){first=true;continue;}
+        if(first){ctx.moveTo(gp.x,gp.y);first=false;}
+        else ctx.lineTo(gp.x,gp.y);
+      }
+      ctx.strokeStyle='rgba(0,100,200,0.06)';ctx.lineWidth=0.5;ctx.stroke();
+    }
+    // longitude grid lines
+    for(var glng2=-180;glng2<180;glng2+=30){
+      ctx.beginPath();
+      var first2=true;
+      for(var glat2=-80;glat2<=80;glat2+=5){
+        var gp2=project(glat2,glng2,W,H);
+        if(!gp2.visible){first2=true;continue;}
+        if(first2){ctx.moveTo(gp2.x,gp2.y);first2=false;}
+        else ctx.lineTo(gp2.x,gp2.y);
+      }
+      ctx.strokeStyle='rgba(0,100,200,0.06)';ctx.lineWidth=0.5;ctx.stroke();
     }
 
-    // building points
-    var now=Date.now();
-    BUILDINGS.forEach(function(b,idx){
-      var p=project(b.lat,b.lng,W,H);
-      if(!p.visible||p.depth<0.05)return;
-      var pulse=(Math.sin(now/900+idx*1.1)+1)/2;
-      var dotR=b.primary?4.5:3;
+    // continent outlines
+    CONTINENTS.forEach(function(poly){
+      ctx.beginPath();
+      var started=false;
+      var prevVisible=false;
+      for(var i=0;i<poly.length;i++){
+        var pp=project(poly[i][0],poly[i][1],W,H);
+        if(!pp.visible){
+          started=false;
+          continue;
+        }
+        if(!started){ctx.moveTo(pp.x,pp.y);started=true;}
+        else ctx.lineTo(pp.x,pp.y);
+      }
+      // fill with subtle color
+      ctx.fillStyle='rgba(8,22,50,0.55)';
+      ctx.fill();
+      ctx.strokeStyle='rgba(0,160,255,0.28)';
+      ctx.lineWidth=1;
+      ctx.stroke();
+    });
 
-      // outer pulse ring
-      ctx.beginPath();ctx.arc(p.x,p.y,dotR+pulse*5,0,Math.PI*2);
-      ctx.strokeStyle='rgba(0,229,255,'+(0.18*pulse)+')';
+    // dot grid over land for texture
+    for(var dlat=-75;dlat<=75;dlat+=3.5){
+      for(var dlng=-180;dlng<=180;dlng+=4){
+        var dp=project(dlat,dlng,W,H);
+        if(!dp.visible||dp.depth<0.1)continue;
+        var alpha=Math.max(0,(dp.depth-0.1)*0.35);
+        ctx.beginPath();ctx.arc(dp.x,dp.y,0.9,0,Math.PI*2);
+        ctx.fillStyle='rgba(100,160,255,'+alpha.toFixed(2)+')';
+        ctx.fill();
+      }
+    }
+
+    // landmark pins
+    PINS.forEach(function(b,idx){
+      var p=project(b.lat,b.lng,W,H);
+      if(!p.visible||p.depth<0.08)return;
+      var pulse=(Math.sin(now/800+idx*1.3)+1)/2;
+      var dotR=b.primary?5:3;
+      var depthFade=Math.min(1,(p.depth-0.08)*3);
+
+      // pulse ring
+      ctx.beginPath();ctx.arc(p.x,p.y,dotR+pulse*6,0,Math.PI*2);
+      ctx.strokeStyle='rgba('+hexToRgb2(b.c)+','+(0.2*pulse*depthFade)+')';
       ctx.lineWidth=1;ctx.stroke();
 
       // dot
-      ctx.beginPath();ctx.arc(p.x,p.y,dotR,0,Math.PI*2);
-      ctx.fillStyle=b.primary?'#00e5ff':'rgba(74,158,255,0.9)';
-      ctx.fill();
+      ctx.beginPath();ctx.arc(p.x,p.y,dotR*depthFade,0,Math.PI*2);
+      ctx.fillStyle=b.c;ctx.fill();
 
-      // label for primary building
-      if(b.primary&&p.depth>0.25){
-        ctx.fillStyle='rgba(126,200,255,0.85)';
-        ctx.font='bold 10px IBM Plex Mono';
-        ctx.fillText(b.label,p.x+8,p.y-2);
+      // label — show for primary + visible landmarks when depth is good
+      if((b.primary||b.type==='landmark'||b.type==='museum')&&p.depth>0.3&&depthFade>0.7){
+        ctx.save();
+        ctx.font=(b.primary?'bold ':'')+'9px IBM Plex Mono';
+        ctx.fillStyle='rgba('+hexToRgb2(b.c)+','+(0.85*depthFade)+')';
+        ctx.fillText(b.label,p.x+dotR+3,p.y+3);
+        ctx.restore();
       }
     });
 
-    rotAngle+=0.012;
+    rotAngle+=0.008;
     requestAnimationFrame(draw);
   }
+
+  var _rgb2={};
+  function hexToRgb2(hex){
+    if(_rgb2[hex])return _rgb2[hex];
+    var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b2=parseInt(hex.slice(5,7),16);
+    _rgb2[hex]=r+','+g+','+b2;return _rgb2[hex];
+  }
+
   draw();
 })();
 
