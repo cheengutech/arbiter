@@ -37,6 +37,74 @@ body{min-height:100vh;overflow-x:hidden}
 /* HERO CANVAS */
 #hero-canvas{display:block;width:100%;height:auto;cursor:default}
 
+/* HERO OVERLAY — text on top of canvas */
+.hero-overlay-wrap{position:relative;overflow:hidden;background:#00040e}
+.hero-overlay-wrap #hero-canvas{display:block;width:100%}
+.hero-overlay-text{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:0 56px 52px;
+  background:linear-gradient(to top,rgba(0,4,14,0.92) 0%,rgba(0,4,14,0.6) 40%,transparent 100%);
+  display:flex;justify-content:space-between;align-items:flex-end;gap:40px;
+}
+.hero-headline{max-width:520px}
+.hero-headline h1{
+  font-family:var(--serif);font-size:58px;font-weight:400;
+  line-height:1.05;letter-spacing:-.01em;color:#fff;margin-bottom:14px;
+}
+.hero-headline p{
+  font-family:var(--sans);font-size:15px;line-height:1.75;
+  color:rgba(216,238,255,0.65);max-width:420px;font-weight:300;margin-bottom:24px;
+}
+.hero-headline .hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+.hero-cta-note{
+  display:flex;flex-direction:column;gap:6px;align-items:flex-end;
+  padding-bottom:4px;flex-shrink:0;
+}
+.hero-cta-note .pulse-line{
+  font-size:10px;letter-spacing:.12em;color:var(--ok);
+  text-transform:uppercase;display:flex;align-items:center;gap:7px;
+}
+.hero-cta-note .pulse-line::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:var(--ok);display:inline-block;animation:pulse 2s ease infinite;
+}
+.hero-cta-note span{font-size:10px;letter-spacing:.08em;color:var(--muted)}
+/* OLD overlay placeholder — keep selector but nullify */
+.UNUSED_hero-overlay-wrap{
+  position:relative;margin-top:-1px;
+}
+.hero-overlay-wrap #hero-canvas{display:block}
+.hero-overlay-text{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  padding:0 56px 48px;
+  background:linear-gradient(to top, rgba(1,4,9,0.92) 0%, rgba(1,4,9,0.55) 40%, transparent 100%);
+  display:flex;justify-content:space-between;align-items:flex-end;gap:40px;
+}
+.hero-headline{max-width:560px}
+.hero-headline h1{
+  font-family:var(--serif);font-size:58px;font-weight:400;
+  line-height:1.05;letter-spacing:-.01em;color:#fff;margin-bottom:14px;
+}
+.hero-headline p{
+  font-family:var(--sans);font-size:15px;line-height:1.75;
+  color:rgba(160,200,240,0.75);max-width:420px;font-weight:300;
+}
+.hero-headline .hero-actions{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+.hero-cta-note{
+  text-align:right;font-size:10px;letter-spacing:.12em;
+  color:rgba(74,158,255,0.45);text-transform:uppercase;
+  display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding-bottom:4px;
+}
+.hero-cta-note .pulse-line{
+  display:flex;align-items:center;gap:8px;color:var(--ok);font-size:10px;
+}
+.hero-cta-note .pulse-line::before{
+  content:'';width:5px;height:5px;border-radius:50%;
+  background:var(--ok);animation:pulse 2s ease infinite;flex-shrink:0;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
 /* MARQUEE */
 .marquee-wrap{
   border-bottom:1px solid var(--border);overflow:hidden;
@@ -321,8 +389,11 @@ footer{padding:24px 56px;display:flex;justify-content:space-between;align-items:
 @media(max-width:900px){
   nav{padding:16px 20px}
   .nav-links a:not(.nav-cta){display:none}
-  .hero-copy,.feed-section,.cta-section{grid-template-columns:1fr}
-  .hero-l,.hero-r,.feed-l,.feed-r,.cta-l,.cta-r{padding:40px 24px;border-right:none;border-bottom:1px solid var(--border)}
+  .hero-overlay-text{padding:0 24px 32px;flex-direction:column;align-items:flex-start;gap:16px}
+  .hero-headline h1{font-size:36px}
+  .hero-cta-note{align-items:flex-start}
+  .feed-section,.cta-section{grid-template-columns:1fr}
+  .feed-l,.feed-r,.cta-l,.cta-r{padding:40px 24px;border-right:none;border-bottom:1px solid var(--border)}
   h1{font-size:44px}
   .proof{flex-wrap:wrap}
   .proof-item{flex:1 1 50%;padding:16px 24px}
@@ -355,38 +426,24 @@ footer{padding:24px 56px;display:flex;justify-content:space-between;align-items:
   </div>
 </nav>
 
-<!-- HERO — animated canvas -->
+<!-- HERO — animated canvas with headline overlay -->
+<div class="hero-overlay-wrap">
 <canvas id="hero-canvas" style="display:block;width:100%;height:auto;background:#00040e"></canvas>
-
-<!-- HERO COPY -->
-<div class="hero-copy">
-  <div class="hero-l">
-    <div class="eyebrow">BMS Alarm Intelligence</div>
+<div class="hero-overlay-text">
+  <div class="hero-headline">
     <h1>The alarms<br>that matter.<br>Nothing else.</h1>
-    <p class="hero-sub">Arbiter watches every BACnet device on your site, filters the noise, and delivers one SMS when something actually needs your attention.</p>
-    <div class="cloak-note">
-      <strong>Cloaking the noise.</strong> 97% of BMS chatter suppressed before it reaches you — only actionable alerts get through.
-    </div>
+    <p>Arbiter watches every BACnet device on your site, filters the noise, and sends one SMS when something actually needs your attention.</p>
     <div class="hero-actions">
       <a class="btn-primary" href="#contact">Request access</a>
-      <a class="btn-ghost" href="/demo">See the filter</a>
+      <a class="btn-ghost" href="/demo">See the filter &rarr;</a>
     </div>
   </div>
-  <div class="hero-r">
-    <div class="term-label">Legion of Honor &middot; SC-01 &middot; Live</div>
-    <div class="t-line"><span style="color:var(--dim)">&rarr; </span><span class="t-c">polling 94 objects across 3 devices</span></div>
-    <div class="t-line"><span class="t-wa">&#9888; </span><span class="t-wa">SpaceRH 62.4%RH &mdash; limit 60% &mdash; SCORE 87</span></div>
-    <div class="t-line"><span class="t-cr">&#10007; </span><span class="t-cr">Supply Air 93.1&deg;F &mdash; limit 85&deg;F &mdash; SCORE 100</span></div>
-    <div class="t-line" style="color:var(--dim)">&#8856; CHW Pump DP 81.2 PSI &mdash; suppressed</div>
-    <div class="t-line" style="color:var(--dim)">&#8856; Zone Temp FC-4 72.1&deg;F &mdash; suppressed</div>
-    <div class="t-line"><span style="color:var(--dim)">&rarr; </span><span class="t-bl">SMS dispatched &middot; 2 alerts &middot; 510-XXX-XXXX</span></div>
-    <div class="t-line"><span style="color:var(--dim)">&rarr; </span><span class="t-c">next poll in 58s <span class="t-cursor"></span></span></div>
-    <div class="mini-stats">
-      <div class="ms"><div class="ms-num">97<span>%</span></div><div class="ms-lbl">Noise filtered</div></div>
-      <div class="ms" style="border-left:1px solid var(--border)"><div class="ms-num">&lt;30<span>s</span></div><div class="ms-lbl">SMS delivery</div></div>
-      <div class="ms" style="border-left:1px solid var(--border)"><div class="ms-num">24<span>/7</span></div><div class="ms-lbl">BACnet polling</div></div>
-    </div>
+  <div class="hero-cta-note">
+    <div class="pulse-line">BACnet/IP gateway connected</div>
+    <span>Live in production &middot; Legion of Honor, SF</span>
+    <span>97% alarm noise filtered</span>
   </div>
+</div>
 </div>
 
 <!-- PROOF BAR -->
