@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arbiter — Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111318;
+    --surface2: #181c23;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8eaf0;
+    --muted: #7a8194;
+    --accent: #e8f060;
+    --critical: #ff5c5c;
+    --warning: #ffaa40;
+    --ok: #4adf96;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .nav-left { display: flex; align-items: center; gap: 20px; }
+  .logo {
+    font-family: var(--mono); font-size: 14px; font-weight: 500;
+    letter-spacing: 0.08em; color: var(--accent); text-decoration: none;
+  }
+  .logo span { color: var(--muted); font-weight: 400; }
+  .nav-link {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+    color: var(--muted); text-decoration: none; text-transform: uppercase;
+    padding: 4px 0; border-bottom: 1px solid transparent; transition: all 0.2s;
+  }
+  .nav-link:hover { color: var(--text); }
+  .nav-link.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .live-indicator {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 11px; color: var(--ok); letter-spacing: 0.08em;
+  }
+  .live-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--ok);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+  .nav-time { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+  /* ── BUILDING TABS ── */
+  .tabs {
+    display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+    color: var(--muted); padding: 12px 24px; cursor: pointer;
+    border-bottom: 2px solid transparent; transition: all 0.2s;
+    white-space: nowrap; text-transform: uppercase; user-select: none;
+  }
+  .tab:hover { color: var(--text); background: var(--surface); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── TOGGLE ── */
+  .toggle-bar {
+    display: flex; align-items: center; justify-content: center;
+    gap: 16px; padding: 14px 28px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0; background: var(--surface);
+  }
+  .toggle-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .toggle-label.off { color: var(--critical); }
+  .toggle-label.on  { color: var(--ok); }
+
+  .toggle-pill {
+    width: 56px; height: 28px; border-radius: 14px;
+    background: rgba(255,92,92,0.2); border: 1px solid rgba(255,92,92,0.3);
+    cursor: pointer; position: relative; transition: all 0.4s;
+  }
+  .toggle-pill.active {
+    background: rgba(74,223,150,0.2); border-color: rgba(74,223,150,0.3);
+  }
+  .toggle-knob {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--critical); position: absolute; top: 2px; left: 2px;
+    transition: all 0.4s;
+  }
+  .toggle-pill.active .toggle-knob {
+    left: 30px; background: var(--ok);
+  }
+
+  .filter-stats {
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    letter-spacing: 0.04em; min-width: 180px;
+  }
+  .filter-stats .num { color: var(--accent); font-weight: 500; }
+
+  /* ── MAIN AREA ── */
+  .main-area {
+    flex: 1; position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+
+  /* ── RAW FEED ── */
+  .raw-feed {
+    flex: 1; overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
+    position: relative;
+  }
+  .feed-row {
+    display: grid;
+    grid-template-columns: 70px 1fr 2fr 80px;
+    gap: 8px; padding: 6px 28px; border-bottom: 1px solid var(--border);
+    font-family: var(--mono); font-size: 11px; line-height: 1.5;
+    animation: rowSlide 0.25s ease-out;
+    transition: opacity 0.3s, transform 0.5s;
+  }
+  .feed-row:nth-child(odd) { background: rgba(255,255,255,0.008); }
+  .feed-row .col-time { color: var(--muted); font-size: 10px; }
+  .feed-row .col-device { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .feed-row .col-desc { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .feed-row .col-sev { text-align: right; }
+
+  .sev-badge {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em;
+    padding: 2px 6px; border-radius: 2px; text-transform: uppercase; display: inline-block;
+  }
+  .sev-crit { background: rgba(255,92,92,0.12); color: var(--critical); border: 1px solid rgba(255,92,92,0.2); }
+  .sev-warn { background: rgba(255,170,64,0.10); color: var(--warning); border: 1px solid rgba(255,170,64,0.2); }
+  .sev-info { background: rgba(74,223,150,0.08); color: var(--ok); border: 1px solid rgba(74,223,150,0.15); }
+
+  @keyframes rowSlide {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── FUNNEL ANIMATION OVERLAY ── */
+  .funnel-overlay {
+    position: absolute; inset: 0; z-index: 10;
+    display: none; flex-direction: column; align-items: center;
+    justify-content: center; background: var(--bg);
+  }
+  .funnel-overlay.active { display: flex; }
+
+  .funnel-top {
+    width: 80%; max-width: 700px; display: flex; flex-direction: column;
+    align-items: center; gap: 2px; margin-bottom: 0;
+  }
+  .funnel-row {
+    height: 3px; border-radius: 1px; opacity: 0;
+    animation: funnelDrop 1.5s ease-in-out forwards;
+  }
+  .funnel-row.crit { background: var(--critical); }
+  .funnel-row.warn { background: var(--warning); }
+  .funnel-row.info { background: rgba(255,255,255,0.15); }
+
+  @keyframes funnelDrop {
+    0%   { opacity: 0.8; transform: scaleX(1); }
+    60%  { opacity: 0.4; transform: scaleX(0.4); }
+    80%  { opacity: 0; transform: scaleX(0.1) translateY(20px); }
+    100% { opacity: 0; transform: scaleX(0) translateY(30px); }
+  }
+
+  .funnel-bar {
+    width: 60%; max-width: 500px; height: 2px; margin: 24px 0;
+    position: relative; overflow: hidden;
+    background: rgba(255,255,255,0.05); border-radius: 1px;
+  }
+  .funnel-bar-glow {
+    position: absolute; top: -4px; left: -20%; width: 20%; height: 10px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    border-radius: 4px; filter: blur(3px);
+    animation: barSweep 1.2s 0.3s ease-in-out forwards;
+  }
+  @keyframes barSweep {
+    from { left: -20%; opacity: 1; }
+    to   { left: 100%; opacity: 0.5; }
+  }
+  .funnel-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
+    color: var(--accent); text-transform: uppercase; margin-bottom: 16px;
+    opacity: 0; animation: labelFade 0.6s 0.8s ease forwards;
+  }
+  @keyframes labelFade { to { opacity: 1; } }
+
+  .funnel-results {
+    display: flex; flex-direction: column; gap: 8px;
+    width: 60%; max-width: 500px;
+  }
+  .funnel-result-card {
+    opacity: 0; transform: translateY(10px);
+    animation: resultEmerge 0.5s ease-out forwards;
+  }
+  @keyframes resultEmerge {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── FILTERED VIEW ── */
+  .filtered-view {
+    flex: 1; overflow-y: auto; padding: 28px;
+    display: none; flex-direction: column; gap: 16px;
+  }
+  .filtered-view.active { display: flex; }
+  .raw-feed.hidden { display: none; }
+
+  .filtered-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+  .filtered-title {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em;
+    color: var(--accent); text-transform: uppercase;
+  }
+  .filtered-suppressed {
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+  }
+  .filtered-suppressed .num { color: var(--accent); }
+
+  .alert-card {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 6px; padding: 20px 24px;
+    display: grid; grid-template-columns: 1fr auto; gap: 12px;
+    transition: border-color 0.3s;
+  }
+  .alert-card:hover { border-color: rgba(255,255,255,0.2); }
+  .alert-card.card-crit { border-left: 3px solid var(--critical); }
+  .alert-card.card-warn { border-left: 3px solid var(--warning); }
+
+  .card-building {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+    color: var(--accent); text-transform: uppercase; margin-bottom: 4px; opacity: 0.8;
+  }
+  .card-device {
+    font-family: var(--mono); font-size: 13px; color: var(--text);
+    font-weight: 500; margin-bottom: 2px;
+  }
+  .card-point {
+    font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 10px;
+  }
+  .card-gauge {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 11px;
+  }
+  .gauge-track {
+    flex: 1; max-width: 160px; height: 4px; background: var(--surface2);
+    border-radius: 2px; overflow: hidden; position: relative;
+  }
+  .gauge-fill {
+    height: 100%; border-radius: 2px; transition: width 0.5s;
+  }
+  .gauge-fill.g-crit { background: var(--critical); }
+  .gauge-fill.g-warn { background: var(--warning); }
+  .gauge-val { color: var(--text); font-weight: 500; }
+  .gauge-thresh { color: var(--muted); }
+
+  .card-right {
+    display: flex; flex-direction: column; align-items: flex-end;
+    justify-content: space-between; gap: 8px;
+  }
+  .card-sev {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+    padding: 3px 10px; border-radius: 3px; text-transform: uppercase;
+  }
+  .card-sev.cs-crit { background: rgba(255,92,92,0.15); color: var(--critical); border: 1px solid rgba(255,92,92,0.25); }
+  .card-sev.cs-warn { background: rgba(255,170,64,0.12); color: var(--warning); border: 1px solid rgba(255,170,64,0.2); }
+  .card-time {
+    font-family: var(--mono); font-size: 10px; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <a href="/" class="logo">ARBITER<span>.io</span></a>
+    <a href="/" class="nav-link">Home</a>
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/demo" class="nav-link active">Demo</a>
+  </div>
+  <div class="nav-right">
+    <div class="live-indicator">
+      <div class="live-dot"></div>
+      <span id="live-text">LIVE</span>
+    </div>
+    <div class="nav-time" id="nav-time">--:--:--</div>
+  </div>
+</nav>
+
+<!-- BUILDING TABS -->
+<div class="tabs" id="tabs">
+  <div class="tab active" data-building="Legion of Honor">Legion of Honor</div>
+  <div class="tab" data-building="Office Tower">Office Tower</div>
+  <div class="tab" data-building="Hospital/Lab">Hospital / Lab</div>
+  <div class="tab" data-building="Data Center">Data Center</div>
+  <div class="tab" data-building="Warehouse">Warehouse</div>
+</div>
+
+<!-- TOGGLE BAR -->
+<div class="toggle-bar">
+  <span class="toggle-label off" id="label-off">Raw Feed</span>
+  <div class="toggle-pill" id="toggle" role="button" tabindex="0" aria-label="Toggle Arbiter AI filter">
+    <div class="toggle-knob"></div>
+  </div>
+  <span class="toggle-label on" id="label-on">Arbiter AI</span>
+  <div class="filter-stats" id="filter-stats"></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-area">
+
+  <!-- RAW ALARM FEED -->
+  <div class="raw-feed" id="raw-feed"></div>
+
+  <!-- FUNNEL ANIMATION OVERLAY -->
+  <div class="funnel-overlay" id="funnel-overlay"></div>
+
+  <!-- FILTERED VIEW -->
+  <div class="filtered-view" id="filtered-view"></div>
+
+</div>
+
+<script>
+// ─── Config ──────────────────────────────────────────────────────────────────
+var WS_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'ws://localhost:8000/ws/alarms'
+  : 'wss://arbiter-iq7x.onrender.com/ws/alarms';
+var MAX_FEED = 200;
+var MAX_ALARMS = 500;
+
+// ─── State ───────────────────────────────────────────────────────────────────
+var activeBuilding = 'Legion of Honor';
+var arbiterOn = false;
+var allAlarms = [];      // all real alarms (any building)
+var noiseAlarms = [];    // synthetic noise for current building
+var noiseTimer = null;
+var noiseCleanupTimers = [];
+var totalFiltered = 0;
+var ws = null;
+var reconnectTimer = null;
+
+// ─── Elements ────────────────────────────────────────────────────────────────
+var rawFeed    = document.getElementById('raw-feed');
+var filteredV  = document.getElementById('filtered-view');
+var funnelOv   = document.getElementById('funnel-overlay');
+var togglePill = document.getElementById('toggle');
+var filterStats= document.getElementById('filter-stats');
+
+// ─── Noise definitions per building ──────────────────────────────────────────
+var NOISE = {
+  'Legion of Honor': [
+    { device:'DriSteem VL6 (11002)',   point:'SpaceRH',               threshold:60,  unit:'%RH',  base:59.7, jitter:0.5 },
+    { device:'LOH SC+ Proxy (3001)',   point:'Gallery 2-05 RH',       threshold:58,  unit:'%RH',  base:57.6, jitter:0.6 },
+    { device:'LOH SC+ Proxy (3001)',   point:'Gallery 2-06 RH',       threshold:58,  unit:'%RH',  base:57.8, jitter:0.4 },
+    { device:'DriSteem VL6 (11002)',   point:'DuctRH',                threshold:80,  unit:'%RH',  base:79.2, jitter:1.2 },
+    { device:'LOH SC+ Proxy (3001)',   point:'CT-1 Entering Water Temp', threshold:90, unit:'\u00b0F', base:89.4, jitter:0.8 },
+    { device:'DriSteem VL6 (11002)',   point:'SafetyInterlock',       threshold:null, unit:'',    base:null,  jitter:0,   binary:true, labels:['inactive','active'] },
+  ],
+  'Office Tower': [
+    { device:'VAV-04',  point:'Zone Temp',          threshold:78, unit:'\u00b0F', base:77.5, jitter:0.8 },
+    { device:'VAV-15',  point:'Zone Temp',          threshold:78, unit:'\u00b0F', base:77.3, jitter:0.6 },
+    { device:'VAV-25',  point:'Zone Temp',          threshold:78, unit:'\u00b0F', base:77.8, jitter:0.5 },
+    { device:'AHU-2',   point:'Discharge Air Temp', threshold:62, unit:'\u00b0F', base:61.4, jitter:0.9 },
+    { device:'RTU-1',   point:'OA Damper Position', threshold:10, unit:'%',       base:11.2, jitter:2.0, lowAlarm:true },
+    { device:'DHW Heater', point:'Supply Temp',     threshold:110,unit:'\u00b0F', base:111.5,jitter:2.0, lowAlarm:true },
+    { device:'Chiller-1',  point:'Leaving Water Temp', threshold:48, unit:'\u00b0F', base:47.3, jitter:1.0 },
+  ],
+  'Hospital/Lab': [
+    { device:'ULT Freezer-2', point:'Cabinet Temp',  threshold:-75, unit:'\u00b0C', base:-75.8, jitter:1.2, lowAlarm:true },
+    { device:'ULT Freezer-5', point:'Cabinet Temp',  threshold:-75, unit:'\u00b0C', base:-76.2, jitter:1.0, lowAlarm:true },
+    { device:'Clean Room 1',  point:'Room Pressure', threshold:0.01,unit:'in wc',   base:0.018, jitter:0.01,lowAlarm:true },
+    { device:'Clean Room 3',  point:'Room Pressure', threshold:0.01,unit:'in wc',   base:0.015, jitter:0.008,lowAlarm:true },
+    { device:'Boiler-1', point:'Supply Water Temp',  threshold:200, unit:'\u00b0F', base:198.5, jitter:2.5 },
+    { device:'O2 Manifold', point:'Supply Pressure', threshold:45, unit:'PSI',      base:46.5,  jitter:2.5, lowAlarm:true },
+    { device:'AHU-3',   point:'Filter DP',           threshold:2.0, unit:'in wc',   base:1.92,  jitter:0.12 },
+  ],
+  'Data Center': [
+    { device:'CRAC-2',  point:'Supply Air Temp', threshold:72, unit:'\u00b0F', base:71.3, jitter:1.2 },
+    { device:'CRAC-5',  point:'Supply Air Temp', threshold:72, unit:'\u00b0F', base:71.6, jitter:0.8 },
+    { device:'CRAC-7',  point:'Supply Air Temp', threshold:72, unit:'\u00b0F', base:71.1, jitter:1.0 },
+    { device:'Rack B08', point:'Inlet Temp',     threshold:85, unit:'\u00b0F', base:84.2, jitter:1.5 },
+    { device:'Rack E14', point:'Inlet Temp',     threshold:85, unit:'\u00b0F', base:84.5, jitter:1.2 },
+    { device:'Rack H03', point:'Inlet Temp',     threshold:85, unit:'\u00b0F', base:83.8, jitter:1.8 },
+    { device:'Aisle Containment', point:'Hot/Cold Delta T', threshold:28, unit:'\u00b0F', base:27.2, jitter:1.5 },
+    { device:'UPS-2',   point:'Battery Level',   threshold:50, unit:'%',       base:52,   jitter:3.0, lowAlarm:true },
+  ],
+  'Warehouse': [
+    { device:'Dock Heater Bay-1', point:'Bay Temp', threshold:40, unit:'\u00b0F', base:41.5, jitter:2.5, lowAlarm:true },
+    { device:'Dock Heater Bay-3', point:'Bay Temp', threshold:40, unit:'\u00b0F', base:42.0, jitter:2.0, lowAlarm:true },
+    { device:'Boiler-2', point:'Supply Water Temp', threshold:185,unit:'\u00b0F', base:183.5,jitter:2.5 },
+    { device:'RTU-1',    point:'Supply Air Temp',   threshold:78, unit:'\u00b0F', base:77.0, jitter:1.5 },
+    { device:'Exhaust Fan-2', point:'Run Status', threshold:null, unit:'', base:null, jitter:0, binary:true, labels:['off','running'] },
+    { device:'Charger Station-4', point:'Charger Fault', threshold:null, unit:'', base:null, jitter:0, binary:true, labels:['fault','normal'] },
+    { device:'Roof Leak Sensor Zone-2', point:'Moisture Detected', threshold:null, unit:'', base:null, jitter:0, binary:true, labels:['wet','dry'] },
+  ],
+};
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function uid() { return Math.random().toString(36).slice(2,10); }
+function now() { return new Date().toISOString(); }
+function fmt(v, decimals) {
+  if (v == null) return '';
+  if (typeof v === 'number') return v.toFixed(decimals != null ? decimals : 1);
+  return String(v);
+}
+function fmtTime(iso) {
+  try { return new Date(iso).toTimeString().slice(0,8); }
+  catch(e) { return '--:--:--'; }
+}
+function sevClass(sev) {
+  if (sev === 'CRITICAL') return 'sev-crit';
+  if (sev === 'WARNING')  return 'sev-warn';
+  return 'sev-info';
+}
+
+// ─── Clock ───────────────────────────────────────────────────────────────────
+setInterval(function() {
+  document.getElementById('nav-time').textContent = new Date().toTimeString().slice(0,8);
+}, 1000);
+
+// ─── Tab switching ───────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(function(t) {
+  t.addEventListener('click', function() {
+    document.querySelector('.tab.active').classList.remove('active');
+    t.classList.add('active');
+    activeBuilding = t.dataset.building;
+    noiseAlarms = [];
+    renderFeed();
+    if (arbiterOn) renderFiltered();
+  });
+});
+
+// ─── Toggle ──────────────────────────────────────────────────────────────────
+togglePill.addEventListener('click', function() {
+  arbiterOn = !arbiterOn;
+  togglePill.classList.toggle('active', arbiterOn);
+
+  if (arbiterOn) {
+    stopNoise();
+    playFunnel();
+  } else {
+    funnelOv.classList.remove('active');
+    funnelOv.innerHTML = '';
+    filteredV.classList.remove('active');
+    rawFeed.classList.remove('hidden');
+    startNoise();
+    renderFeed();
+  }
+});
+
+// ─── WebSocket ───────────────────────────────────────────────────────────────
+function connectWS() {
+  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = function() {
+    document.querySelector('.live-dot').style.background = 'var(--ok)';
+    document.getElementById('live-text').textContent = 'LIVE';
+    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+  };
+
+  ws.onmessage = function(e) {
+    var msg;
+    try { msg = JSON.parse(e.data); } catch(_) { return; }
+
+    if (msg.type === 'history' && Array.isArray(msg.alarms)) {
+      for (var i = 0; i < msg.alarms.length; i++) {
+        allAlarms.push(msg.alarms[i]);
+      }
+      if (allAlarms.length > MAX_ALARMS) allAlarms = allAlarms.slice(-MAX_ALARMS);
+      renderFeed();
+    } else if (msg.id && msg.timestamp) {
+      allAlarms.push(msg);
+      if (allAlarms.length > MAX_ALARMS) allAlarms.shift();
+      if (!arbiterOn && (msg.building || '') === activeBuilding) {
+        prependRow(msg, false);
+      }
+      if (arbiterOn) renderFiltered();
+    }
+  };
+
+  ws.onclose = function() {
+    document.querySelector('.live-dot').style.background = 'var(--critical)';
+    document.getElementById('live-text').textContent = 'OFFLINE';
+    reconnectTimer = setTimeout(connectWS, 3000);
+  };
+  ws.onerror = function() { ws.close(); };
+}
+
+setInterval(function() {
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send('ping');
+}, 30000);
+
+// ─── Render raw feed ─────────────────────────────────────────────────────────
+function makeRow(a, animate) {
+  var sev = a.severity || 'INFO';
+  var state = a.state || 'ACTIVE';
+  var label = state === 'ACTIVE' ? sev : 'CLEARED';
+  var sc = state === 'ACTIVE'
+    ? sevClass(sev)
+    : 'sev-info';
+  var val = (a.value != null ? fmt(a.value) : '') + (a.unit ? ' ' + a.unit : '');
+
+  var el = document.createElement('div');
+  el.className = 'feed-row';
+  if (!animate) el.style.animation = 'none';
+  el.innerHTML =
+    '<span class="col-time">' + fmtTime(a.timestamp) + '</span>' +
+    '<span class="col-device">' + (a.device || '') + '</span>' +
+    '<span class="col-desc">' + (a.description || a.point || '') + '</span>' +
+    '<span class="col-sev"><span class="sev-badge ' + sc + '">' + label + '</span></span>';
+  return el;
+}
+
+function prependRow(a, isNoise) {
+  if (arbiterOn) return;
+  var el = makeRow(a, true);
+  if (isNoise) el.style.opacity = '0.75';
+  rawFeed.insertBefore(el, rawFeed.firstChild);
+  while (rawFeed.children.length > MAX_FEED) {
+    rawFeed.removeChild(rawFeed.lastChild);
+  }
+  updateStats();
+}
+
+function renderFeed() {
+  rawFeed.innerHTML = '';
+  // Interleave real alarms + noise for this building
+  var real = allAlarms.filter(function(a) { return (a.building || '') === activeBuilding; });
+  var combined = real.concat(noiseAlarms).sort(function(a,b) {
+    return (b.timestamp || '').localeCompare(a.timestamp || '');
+  });
+  var rows = combined.slice(0, MAX_FEED);
+  for (var i = 0; i < rows.length; i++) {
+    var el = makeRow(rows[i], false);
+    if (rows[i]._noise) el.style.opacity = '0.75';
+    rawFeed.appendChild(el);
+  }
+  updateStats();
+}
+
+function updateStats() {
+  var real = allAlarms.filter(function(a) { return (a.building || '') === activeBuilding; });
+  var total = rawFeed.children.length;
+  if (arbiterOn) {
+    var actionable = document.querySelectorAll('.alert-card').length;
+    filterStats.innerHTML = '<span class="num">' + (total - actionable) + '</span> alarms filtered \u2014 <span class="num">' + actionable + '</span> actionable';
+  } else {
+    filterStats.innerHTML = '<span class="num">' + total + '</span> alarms in feed';
+  }
+}
+
+// ─── Noise generator ─────────────────────────────────────────────────────────
+function generateNoise() {
+  var defs = NOISE[activeBuilding];
+  if (!defs || !defs.length) return;
+  var def = defs[Math.floor(Math.random() * defs.length)];
+
+  var alarm = {
+    id: uid(),
+    timestamp: now(),
+    building: activeBuilding,
+    device: def.device,
+    point: def.point,
+    unit: def.unit,
+    _noise: true,
+  };
+
+  if (def.binary) {
+    // Binary toggle alarm
+    alarm.value = def.labels[0];
+    alarm.threshold = def.labels[1];
+    alarm.severity = Math.random() < 0.3 ? 'CRITICAL' : 'WARNING';
+    alarm.state = 'ACTIVE';
+    alarm.description = def.device + ' ' + def.point + ': ' + alarm.value;
+  } else {
+    // Numeric threshold bounce
+    var v = def.base + (Math.random() - 0.3) * def.jitter;
+    var isLow = def.lowAlarm;
+    var tripped = isLow ? v <= def.threshold : v >= def.threshold;
+    alarm.value = Math.round(v * 100) / 100;
+    alarm.threshold = def.threshold;
+    alarm.severity = tripped ? (Math.random() < 0.2 ? 'CRITICAL' : 'WARNING') : 'INFO';
+    alarm.state = tripped ? 'ACTIVE' : 'CLEARED';
+    var dir = tripped ? (isLow ? 'low' : 'high') : 'normal';
+    alarm.description = def.device + ' ' + def.point + ' ' + dir + ': ' + fmt(alarm.value) + (def.unit ? ' ' + def.unit : '');
+  }
+
+  noiseAlarms.unshift(alarm);
+  if (noiseAlarms.length > 150) noiseAlarms.length = 150;
+  prependRow(alarm, true);
+
+  // Auto-clear after 2-5 seconds
+  if (alarm.state === 'ACTIVE') {
+    var delay = 2000 + Math.random() * 3000;
+    var t = setTimeout(function() {
+      var cleared = {
+        id: uid(), timestamp: now(), building: activeBuilding,
+        device: alarm.device, point: alarm.point, unit: alarm.unit,
+        severity: 'INFO', state: 'CLEARED', _noise: true,
+        value: def.binary ? def.labels[1] : (def.base + (Math.random() * 0.3 * (def.lowAlarm ? 1 : -1))),
+        threshold: alarm.threshold,
+        description: alarm.device + ' ' + alarm.point + ' cleared',
+      };
+      noiseAlarms.unshift(cleared);
+      if (noiseAlarms.length > 150) noiseAlarms.length = 150;
+      prependRow(cleared, true);
+    }, delay);
+    noiseCleanupTimers.push(t);
+  }
+}
+
+function startNoise() {
+  stopNoise();
+  // Rapid-fire noise at random intervals 300-800ms
+  function schedule() {
+    noiseTimer = setTimeout(function() {
+      generateNoise();
+      if (!arbiterOn) schedule();
+    }, 300 + Math.random() * 500);
+  }
+  schedule();
+}
+
+function stopNoise() {
+  if (noiseTimer) { clearTimeout(noiseTimer); noiseTimer = null; }
+  noiseCleanupTimers.forEach(clearTimeout);
+  noiseCleanupTimers = [];
+}
+
+// ─── Funnel animation ────────────────────────────────────────────────────────
+function playFunnel() {
+  rawFeed.classList.add('hidden');
+  filteredV.classList.remove('active');
+  funnelOv.innerHTML = '';
+  funnelOv.classList.add('active');
+
+  // Build funnel rows
+  var topHtml = '<div class="funnel-top">';
+  var count = 30;
+  for (var i = 0; i < count; i++) {
+    var w = 100 - (i / count) * 60;
+    var r = Math.random();
+    var c = r < 0.15 ? 'crit' : (r < 0.4 ? 'warn' : 'info');
+    var d = (i * 40) + 'ms';
+    topHtml += '<div class="funnel-row ' + c + '" style="width:' + w + '%;animation-delay:' + d + ';"></div>';
+  }
+  topHtml += '</div>';
+
+  var barHtml =
+    '<div class="funnel-bar"><div class="funnel-bar-glow"></div></div>' +
+    '<div class="funnel-label">AI Scoring Engine</div>';
+
+  // Build result cards preview
+  var actionable = getActionableAlarms();
+  var resultsHtml = '<div class="funnel-results">';
+  actionable.forEach(function(a, idx) {
+    var delay = (1200 + idx * 200) + 'ms';
+    var sc = a.severity === 'CRITICAL' ? 'cs-crit' : 'cs-warn';
+    resultsHtml +=
+      '<div class="funnel-result-card" style="animation-delay:' + delay + ';">' +
+        '<div class="alert-card card-' + (a.severity === 'CRITICAL' ? 'crit' : 'warn') + '">' +
+          '<div>' +
+            '<div class="card-building">' + (a.building || '') + '</div>' +
+            '<div class="card-device">' + (a.device || '') + '</div>' +
+            '<div class="card-point">' + (a.point || '') + '</div>' +
+          '</div>' +
+          '<div class="card-right">' +
+            '<span class="card-sev ' + sc + '">' + a.severity + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  });
+  resultsHtml += '</div>';
+
+  funnelOv.innerHTML = topHtml + barHtml + resultsHtml;
+
+  // After animation, transition to filtered view
+  setTimeout(function() {
+    funnelOv.classList.remove('active');
+    funnelOv.innerHTML = '';
+    renderFiltered();
+    filteredV.classList.add('active');
+  }, 2400);
+}
+
+// ─── Filtered view ───────────────────────────────────────────────────────────
+function getActionableAlarms() {
+  // From real alarms only, pick active CRITICAL + longest-active WARNING for this building
+  var building = allAlarms.filter(function(a) {
+    return (a.building || '') === activeBuilding && a.state === 'ACTIVE';
+  });
+
+  // Deduplicate by device:point, keep latest
+  var seen = {};
+  var unique = [];
+  for (var i = building.length - 1; i >= 0; i--) {
+    var key = building[i].device + ':' + building[i].point;
+    if (!seen[key]) {
+      seen[key] = true;
+      unique.push(building[i]);
+    }
+  }
+
+  // Sort: CRITICAL first, then by timestamp desc
+  unique.sort(function(a, b) {
+    if (a.severity === 'CRITICAL' && b.severity !== 'CRITICAL') return -1;
+    if (b.severity === 'CRITICAL' && a.severity !== 'CRITICAL') return 1;
+    return (b.timestamp || '').localeCompare(a.timestamp || '');
+  });
+
+  // If we don't have enough real alarms, synthesize a few representative ones
+  if (unique.length < 3) {
+    var defs = NOISE[activeBuilding] || [];
+    for (var j = 0; j < defs.length && unique.length < 4; j++) {
+      var d = defs[j];
+      if (d.binary) continue;
+      var exists = unique.some(function(u) { return u.device === d.device && u.point === d.point; });
+      if (exists) continue;
+      var tripped = d.lowAlarm ? (d.base - d.jitter * 0.8) : (d.base + d.jitter * 0.8);
+      unique.push({
+        id: uid(), timestamp: now(), building: activeBuilding,
+        device: d.device, point: d.point, unit: d.unit,
+        value: Math.round(tripped * 100) / 100,
+        threshold: d.threshold,
+        severity: j === 0 ? 'CRITICAL' : 'WARNING',
+        state: 'ACTIVE',
+        description: d.device + ' ' + d.point,
+      });
+    }
+  }
+
+  return unique.slice(0, 5);
+}
+
+function renderFiltered() {
+  var actionable = getActionableAlarms();
+  var real = allAlarms.filter(function(a) { return (a.building || '') === activeBuilding; });
+  var suppressed = real.length + noiseAlarms.length - actionable.length;
+  totalFiltered = Math.max(0, suppressed);
+
+  var html =
+    '<div class="filtered-header">' +
+      '<div class="filtered-title">// Actionable Alerts</div>' +
+      '<div class="filtered-suppressed"><span class="num">' + totalFiltered + '</span> alarms filtered</div>' +
+    '</div>';
+
+  actionable.forEach(function(a) {
+    var isCrit = a.severity === 'CRITICAL';
+    var cardClass = isCrit ? 'card-crit' : 'card-warn';
+    var sevClass = isCrit ? 'cs-crit' : 'cs-warn';
+    var val = typeof a.value === 'number' ? fmt(a.value) : String(a.value || '');
+    var thresh = typeof a.threshold === 'number' ? fmt(a.threshold) : String(a.threshold || '');
+    var pct = 0;
+    if (typeof a.value === 'number' && typeof a.threshold === 'number' && a.threshold !== 0) {
+      pct = Math.min(100, Math.abs(a.value / a.threshold) * 100);
+    }
+    var gClass = isCrit ? 'g-crit' : 'g-warn';
+
+    html +=
+      '<div class="alert-card ' + cardClass + '">' +
+        '<div>' +
+          '<div class="card-building">' + (a.building || '') + '</div>' +
+          '<div class="card-device">' + (a.device || '') + '</div>' +
+          '<div class="card-point">' + (a.point || '') + '</div>' +
+          '<div class="card-gauge">' +
+            '<div class="gauge-track"><div class="gauge-fill ' + gClass + '" style="width:' + pct + '%"></div></div>' +
+            '<span class="gauge-val">' + val + (a.unit ? ' ' + a.unit : '') + '</span>' +
+            '<span class="gauge-thresh">/ ' + thresh + (a.unit ? ' ' + a.unit : '') + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="card-right">' +
+          '<span class="card-sev ' + sevClass + '">' + a.severity + '</span>' +
+          '<span class="card-time">' + fmtTime(a.timestamp) + '</span>' +
+        '</div>' +
+      '</div>';
+  });
+
+  filteredV.innerHTML = html;
+  updateStats();
+}
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+connectWS();
+startNoise();
+</script>
+</body>
+</html>

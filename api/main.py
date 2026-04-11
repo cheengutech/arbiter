@@ -252,4 +252,11 @@ if os.path.isdir(public_dir):
             return FileResponse(index)
         return {"error": "dashboard.html not found"}
 
+    @app.get("/demo")
+    async def demo():
+        demo_file = os.path.join(public_dir, "demo.html")
+        if os.path.exists(demo_file):
+            return FileResponse(demo_file)
+        return {"error": "demo.html not found"}
+
     app.mount("/static", StaticFiles(directory=public_dir), name="static")
