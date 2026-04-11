@@ -27,12 +27,12 @@ from contextlib import asynccontextmanager
 
 from typing import Dict, List, Optional, Set
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-from simulator.bms_simulator_v2 import SimulatorV2, AlarmEvent
+from simulator.bms_simulator_v2 import MultiSiteSimulator, AlarmEvent
 
 # ---------------------------------------------------------------------------
 # Config
@@ -82,7 +82,7 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 alarm_history: deque[dict] = deque(maxlen=MAX_HISTORY)
-simulator: Optional[SimulatorV2] = None
+simulator: Optional[MultiSiteSimulator] = None
 sim_task: Optional[asyncio.Task] = None
 
 
@@ -101,9 +101,9 @@ async def on_alarm(event: AlarmEvent):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global simulator, sim_task
-    simulator = SimulatorV2(on_alarm=on_alarm, tick_interval=SIM_TICK)
+    simulator = MultiSiteSimulator(on_alarm=on_alarm, tick_interval=SIM_TICK)
     sim_task = asyncio.create_task(simulator.run())
-    log.info("Arbiter API started — simulator tick=%ds", SIM_TICK)
+    log.info("Arbiter API started — multi-site simulator tick=%ds", SIM_TICK)
     yield
     simulator.stop()
     sim_task.cancel()
@@ -119,7 +119,7 @@ async def lifespan(app: FastAPI):
 # ---------------------------------------------------------------------------
 app = FastAPI(
     title="Arbiter BMS Alarm API",
-    description="Real-time BACnet alarm event streaming for the Legion of Honor BMS",
+    description="Real-time BACnet alarm event streaming for multi-site BMS",
     version="2.0.0",
     lifespan=lifespan,
 )
@@ -151,6 +151,7 @@ async def get_alarms(
     limit: int = Query(default=50, ge=1, le=MAX_HISTORY),
     severity: Optional[str] = Query(default=None, description="Filter: CRITICAL, WARNING, INFO"),
     state: Optional[str] = Query(default=None, description="Filter: ACTIVE, CLEARED"),
+    building: Optional[str] = Query(default=None, description="Filter by building name"),
 ):
     """Return recent alarm history with optional filters."""
     results = list(alarm_history)
@@ -158,19 +159,61 @@ async def get_alarms(
         results = [a for a in results if a["severity"] == severity.upper()]
     if state:
         results = [a for a in results if a["state"] == state.upper()]
+    if building:
+        results = [a for a in results if a.get("building", "").lower() == building.lower()]
     return {"alarms": results[:limit], "total": len(results)}
 
 
+@app.get("/buildings")
+async def get_buildings():
+    """Return list of all monitored buildings."""
+    return {
+        "buildings": [s.BUILDING_NAME for s in simulator.sims] if simulator else [],
+    }
+
+
 @app.get("/alarms/active")
-async def get_active_alarms():
+async def get_active_alarms(
+    building: Optional[str] = Query(default=None, description="Filter by building name"),
+):
     """Return currently active (uncleared) alarms by tracking latest state per point."""
     active: Dict[str, dict] = {}
     for alarm in alarm_history:
-        key = f"{alarm['device']}:{alarm['point']}"
+        key = f"{alarm.get('building', '')}:{alarm['device']}:{alarm['point']}"
         if key not in active:
             active[key] = alarm
+    result = [a for a in active.values() if a["state"] == "ACTIVE"]
+    if building:
+        result = [a for a in result if a.get("building", "").lower() == building.lower()]
+    return {"alarms": result}
+
+
+# ---------------------------------------------------------------------------
+# Scenario trigger
+# ---------------------------------------------------------------------------
+@app.get("/scenarios")
+async def list_scenarios():
+    """Return available failure scenarios."""
+    return {"scenarios": simulator.scenario_names if simulator else []}
+
+
+@app.post("/scenarios/trigger")
+async def trigger_scenario(
+    scenario: str = Body(..., embed=True),
+):
+    """Inject a canned failure scenario into the running simulation."""
+    if not simulator:
+        return {"error": "simulator not running"}, 503
+    if scenario not in (simulator.scenario_names):
+        return {
+            "error": f"unknown scenario: {scenario}",
+            "available": simulator.scenario_names,
+        }
+    events = await simulator.trigger_scenario(scenario)
     return {
-        "alarms": [a for a in active.values() if a["state"] == "ACTIVE"],
+        "scenario": scenario,
+        "events_injected": len(events),
+        "alarms": [e.to_dict() for e in events],
     }
 
 

@@ -449,7 +449,7 @@
 <nav>
   <div class="nav-left">
     <a href="/" class="logo">ARBITER<span>.to</span></a>
-    <div class="nav-site">LEGION OF HONOR — TRANE SC+</div>
+    <div class="nav-site">MULTI-SITE BMS</div>
   </div>
   <div class="nav-right">
     <div class="live-indicator">
@@ -694,6 +694,7 @@ function wsAlarmToLog(a) {
   return {
     time: formatTime(a.timestamp),
     zone: zoneMatch ? zoneMatch[1] : '',
+    building: a.building || '',
     name: a.description || a.point,
     value: formatValue(a),
     severity: a.severity === 'CRITICAL' ? 'CRITICAL' : (a.severity === 'WARNING' ? 'WARNING' : 'INFO'),
@@ -842,9 +843,13 @@ function renderAlarms() {
       : 'badge-ok';
     var bt = a.active ? a.severity : 'CLEARED';
 
+    var bldgTag = a.building
+      ? '<span style="font-family:var(--mono);font-size:9px;letter-spacing:0.08em;color:var(--accent);opacity:0.7;">' + a.building.toUpperCase() + '</span> '
+      : '';
+
     el.innerHTML =
       '<div class="alarm-item-header">' +
-        '<div class="alarm-item-name">' + a.name + '</div>' +
+        '<div class="alarm-item-name">' + bldgTag + a.name + '</div>' +
         '<div class="alarm-item-time">' + a.time + '</div>' +
       '</div>' +
       '<div class="alarm-item-value">' +
