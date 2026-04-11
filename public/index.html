@@ -4,246 +4,241 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Arbiter — BMS Alarm Intelligence</title>
-<meta name="description" content="Arbiter filters BACnet device noise and sends one SMS when it actually matters. No dashboards to babysit. No alert storms. Just the signal.">
+<meta name="description" content="Arbiter filters BACnet device noise and sends one SMS when something actually needs your attention.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#08090b;
-  --bg2:#0f1115;
-  --bg3:#151820;
-  --border:rgba(255,255,255,0.06);
-  --border2:rgba(255,255,255,0.10);
-  --text:#dde1ea;
-  --muted:#5a6070;
-  --dim:#3a3f4d;
-  --amber:#f5a623;
-  --amber2:#ffd07a;
-  --crit:#e05252;
-  --warn:#f5a623;
-  --ok:#3ecf8e;
+  --bg:#010409;
+  --bg2:#04080f;
+  --bg3:#060c18;
+  --border:rgba(0,180,255,0.08);
+  --border2:rgba(0,180,255,0.15);
+  --border3:rgba(0,180,255,0.25);
+  --text:#d8eeff;
+  --muted:#2a4a6a;
+  --dim:#0d1e30;
+  --blue:#4a9eff;
+  --blue2:#7ec8ff;
+  --cyan:#00e5ff;
+  --gold:#9a7a28;
+  --crit:#ff4466;
+  --warn:#ffaa40;
+  --ok:#00e5a0;
   --mono:'IBM Plex Mono',monospace;
-  --display:'Syne',sans-serif;
+  --serif:'Instrument Serif',serif;
+  --sans:'IBM Plex Sans',sans-serif;
 }
 html{background:var(--bg);color:var(--text);font-family:var(--mono);scroll-behavior:smooth}
-body{min-height:100vh}
+body{min-height:100vh;overflow-x:hidden}
 
-/* ── NAV ── */
+/* NAV */
 nav{
   display:flex;justify-content:space-between;align-items:center;
-  padding:18px 40px;border-bottom:1px solid var(--border);
-  position:sticky;top:0;
-  background:rgba(8,9,11,0.92);backdrop-filter:blur(8px);
-  z-index:100;
+  padding:18px 56px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;
+  background:rgba(1,4,9,0.94);backdrop-filter:blur(8px);
 }
-.nav-logo{font-size:13px;font-weight:500;letter-spacing:.12em;color:var(--amber)}
-.nav-logo span{color:var(--muted)}
-.nav-links{display:flex;gap:32px;align-items:center}
-.nav-links a{font-size:11px;letter-spacing:.1em;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color .15s}
+.nav-logo{font-size:13px;font-weight:500;letter-spacing:.14em;color:var(--blue2)}
+.nav-logo span{color:var(--dim)}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a{font-size:10px;letter-spacing:.12em;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color .2s}
 .nav-links a:hover{color:var(--text)}
-.nav-cta{
-  font-size:11px;letter-spacing:.08em;color:var(--bg) !important;
-  background:var(--amber);padding:7px 16px;
-  text-decoration:none;font-weight:500;transition:background .15s;
-}
-.nav-cta:hover{background:var(--amber2) !important}
+.nav-cta{color:var(--bg) !important;background:var(--blue);padding:7px 18px;font-weight:500;transition:background .2s}
+.nav-cta:hover{background:var(--blue2) !important}
 
-/* ── HERO ── */
-.hero{
-  padding:100px 40px 80px;
-  max-width:1100px;margin:0 auto;
-  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;
-}
-.tag{
-  font-size:10px;letter-spacing:.2em;color:var(--amber);
-  text-transform:uppercase;margin-bottom:20px;
-  display:flex;align-items:center;gap:8px;
-}
-.tag::before{content:'';display:inline-block;width:20px;height:1px;background:var(--amber)}
-.hero-h1{
-  font-family:var(--display);font-size:52px;font-weight:800;
-  line-height:1.05;letter-spacing:-.02em;color:#fff;margin-bottom:20px;
-}
-.hero-h1 em{font-style:normal;color:var(--amber)}
-.hero-sub{
-  font-size:14px;line-height:1.8;color:var(--muted);
-  max-width:440px;margin-bottom:36px;font-weight:400;
-}
-.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
-.btn-primary{
-  font-family:var(--mono);font-size:11px;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--bg);background:var(--amber);
-  padding:12px 24px;border:none;cursor:pointer;
-  text-decoration:none;transition:background .15s;display:inline-block;
-}
-.btn-primary:hover{background:var(--amber2)}
-.btn-ghost{
-  font-family:var(--mono);font-size:11px;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--muted);background:transparent;
-  padding:12px 24px;border:1px solid var(--border2);cursor:pointer;
-  text-decoration:none;transition:all .15s;display:inline-block;
-}
-.btn-ghost:hover{color:var(--text);border-color:var(--dim)}
+/* HERO — ship illustration full width */
+.hero-ship{display:block;width:100%;background:var(--bg)}
 
-/* ── TERMINAL ── */
-.terminal{background:var(--bg2);border:1px solid var(--border2);overflow:hidden}
-.terminal-bar{
-  background:var(--bg3);padding:10px 16px;
+/* HERO COPY — below the ship */
+.hero-copy{
+  display:grid;grid-template-columns:1fr 1fr;
   border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:8px;
+  background:var(--bg);
 }
-.t-dot{width:8px;height:8px;border-radius:50%}
-.t-dot.r{background:#e05252}
-.t-dot.y{background:#f5a623}
-.t-dot.g{background:#3ecf8e}
-.terminal-title{font-size:10px;letter-spacing:.12em;color:var(--muted);margin-left:auto;text-transform:uppercase}
-.terminal-body{padding:20px}
-.t-line{font-size:12px;line-height:2;color:var(--muted)}
-.t-line .prompt{color:var(--dim)}
-.t-line .cmd{color:var(--text)}
-.t-line .ok{color:var(--ok)}
-.t-line .crit{color:var(--crit)}
-.t-line .warn{color:var(--warn)}
-.t-line .amber{color:var(--amber)}
-.t-cursor{
-  display:inline-block;width:7px;height:12px;
-  background:var(--amber);animation:blink 1s step-end infinite;
-  vertical-align:middle;
+.hero-l{
+  padding:56px 56px 56px;
+  border-right:1px solid var(--border);
+  position:relative;
 }
+.hero-l::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(74,158,255,0.012) 3px,rgba(74,158,255,0.012) 4px);
+  pointer-events:none;
+}
+.eyebrow{
+  font-size:10px;letter-spacing:.2em;color:var(--blue);
+  text-transform:uppercase;margin-bottom:22px;
+  display:flex;align-items:center;gap:10px;
+}
+.eyebrow::before{content:'';width:22px;height:1px;background:var(--blue);display:inline-block;flex-shrink:0}
+h1{
+  font-family:var(--serif);font-size:62px;font-weight:400;
+  line-height:1.04;letter-spacing:-.01em;color:var(--text);
+}
+.hero-sub{
+  font-family:var(--sans);font-size:15px;line-height:1.8;
+  color:var(--muted);max-width:400px;font-weight:300;margin-top:22px;
+}
+.cloak-note{
+  margin-top:22px;border-left:2px solid var(--blue);
+  padding:12px 16px;background:rgba(74,158,255,0.04);
+  font-size:11px;color:var(--muted);line-height:1.7;
+}
+.cloak-note strong{color:var(--blue2);font-weight:500}
+.hero-actions{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}
+.btn-primary{
+  font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--bg);background:var(--blue);
+  padding:12px 26px;border:none;cursor:pointer;
+  text-decoration:none;display:inline-block;transition:background .2s;
+}
+.btn-primary:hover{background:var(--blue2)}
+.btn-ghost{
+  font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);background:transparent;
+  padding:12px 26px;border:1px solid var(--border2);cursor:pointer;
+  text-decoration:none;display:inline-block;transition:all .2s;
+}
+.btn-ghost:hover{color:var(--text);border-color:var(--border3)}
+
+.hero-r{padding:56px 56px 56px}
+.term-label{font-size:9px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;margin-bottom:14px}
+.t-line{font-size:11px;line-height:2.1;color:var(--dim)}
+.t-ok{color:var(--ok)}.t-cr{color:var(--crit)}.t-wa{color:var(--warn)}.t-bl{color:var(--blue)}.t-c{color:var(--muted)}
+.t-cursor{display:inline-block;width:6px;height:11px;background:var(--blue);animation:blink 1s step-end infinite;vertical-align:middle}
 @keyframes blink{50%{opacity:0}}
 
-/* ── STATS BAR ── */
-.stats-bar{
-  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
-  display:flex;max-width:1100px;margin:0 auto;
+.mini-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);margin-top:28px;
 }
-.stat{flex:1;padding:28px 40px;border-right:1px solid var(--border)}
-.stat:last-child{border-right:none}
-.stat-num{font-family:var(--display);font-size:36px;font-weight:800;color:#fff;margin-bottom:4px}
-.stat-num span{font-size:20px;color:var(--amber)}
-.stat-label{font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.ms{padding:18px 16px;background:var(--bg)}
+.ms-num{font-family:var(--serif);font-size:30px;color:var(--text)}
+.ms-num span{font-family:var(--mono);font-size:14px;color:var(--blue)}
+.ms-lbl{font-size:9px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-top:4px}
 
-/* ── FEED SECTION ── */
-.feed-section{max-width:1100px;margin:0 auto;padding:80px 40px}
-.section-label{
-  font-size:10px;letter-spacing:.2em;color:var(--amber);
+/* PROOF BAR */
+.proof{
+  display:flex;border-bottom:1px solid var(--border);background:var(--bg);
+}
+.proof-item{
+  flex:1;padding:18px 56px;border-right:1px solid var(--border);
+  font-size:10px;color:var(--dim);display:flex;align-items:center;gap:8px;
+}
+.proof-item:last-child{border-right:none}
+.proof-item strong{color:var(--muted);font-weight:500}
+.proof-acc{color:var(--blue)}
+
+/* FEED SECTION */
+.feed-section{
+  display:grid;grid-template-columns:1fr 1fr;
+  border-bottom:1px solid var(--border);background:var(--bg);
+}
+.feed-l{padding:56px;border-right:1px solid var(--border)}
+.feed-r{padding:56px;background:var(--bg2)}
+
+.sec-label{
+  font-size:10px;letter-spacing:.2em;color:var(--blue);
   text-transform:uppercase;margin-bottom:12px;
   display:flex;align-items:center;gap:8px;
 }
-.section-label::before{content:'';display:inline-block;width:20px;height:1px;background:var(--amber)}
-.section-h2{font-family:var(--display);font-size:32px;font-weight:800;color:#fff;margin-bottom:8px}
-.section-sub{font-size:13px;color:var(--muted);margin-bottom:40px;max-width:480px;line-height:1.8}
+.sec-label::before{content:'';width:20px;height:1px;background:var(--blue);display:inline-block}
+.sec-h2{font-family:var(--serif);font-size:30px;font-weight:400;color:var(--text);margin-bottom:8px}
+.sec-sub{font-family:var(--sans);font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:28px;font-weight:300}
 
-.feed-header{
-  display:grid;
-  grid-template-columns:60px 1fr 1fr 100px 80px 120px;
-  border-bottom:1px solid var(--border2);padding:0 0 10px;
+/* building tabs */
+.b-tabs{display:flex;border:1px solid var(--border2);border-bottom:none;overflow-x:auto}
+.b-tab{
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);padding:10px 16px;cursor:pointer;
+  border:none;border-right:1px solid var(--border2);
+  background:transparent;font-family:var(--mono);white-space:nowrap;transition:all .15s;
 }
-.feed-header span{font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
-.alarm-list{border:1px solid var(--border);overflow:hidden}
-.alarm-row{
-  display:grid;
-  grid-template-columns:60px 1fr 1fr 100px 80px 120px;
-  padding:14px 0;border-bottom:1px solid var(--border);
+.b-tab:last-child{border-right:none}
+.b-tab:hover{color:var(--text);background:var(--bg3)}
+.b-tab.active{color:var(--blue);background:var(--bg3)}
+
+.feed-wrap{border:1px solid var(--border2);overflow:hidden}
+.feed-col-hdr{
+  display:grid;grid-template-columns:36px 1fr 1fr 90px 80px 100px;
+  border-bottom:1px solid var(--border2);padding:10px 0;background:var(--bg3);
+}
+.feed-col-hdr span{font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.alarm-list{min-height:60px}
+
+.a-row{
+  display:grid;grid-template-columns:36px 1fr 1fr 90px 80px 100px;
+  padding:13px 0;border-bottom:1px solid var(--border);
   align-items:center;transition:background .15s;
 }
-.alarm-row:last-child{border-bottom:none}
-.alarm-row:hover{background:var(--bg2)}
-.alarm-row.crit{border-left:2px solid var(--crit)}
-.alarm-row.warn{border-left:2px solid var(--warn)}
-.alarm-row.low{border-left:2px solid var(--dim)}
-.sev-dot{width:7px;height:7px;border-radius:50%;margin:0 auto}
-.sev-dot.crit{background:var(--crit);box-shadow:0 0 6px var(--crit)}
+.a-row:last-child{border-bottom:none}
+.a-row:hover{background:var(--bg2)}
+.sev-dot{width:6px;height:6px;border-radius:50%;margin:0 auto}
+.sev-dot.crit{background:var(--crit);box-shadow:0 0 4px var(--crit)}
 .sev-dot.warn{background:var(--warn)}
-.sev-dot.low{background:var(--dim)}
-.al-device{font-size:12px;color:var(--text);padding-right:12px}
-.al-obj{font-size:12px;color:var(--muted)}
-.al-val{font-size:12px}
+.sev-dot.info{background:var(--dim)}
+.sev-dot.ok{background:var(--ok)}
+.al-dev{font-size:11px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px}
+.al-desc{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px}
+.al-val{font-size:11px}
 .al-val.fault{color:var(--crit);font-weight:500}
 .al-val.over{color:var(--warn)}
-.muted-badge{
-  font-size:9px;letter-spacing:.08em;color:var(--dim);
-  background:rgba(255,255,255,.04);padding:2px 6px;
-  border:1px solid var(--border);
-}
+.al-val.cleared{color:var(--ok)}
+.al-bldg{font-size:9px;letter-spacing:.05em;color:var(--dim);background:rgba(0,180,255,0.04);padding:2px 6px;border:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .al-time{font-size:10px;color:var(--dim)}
-.new-alarm{animation:slideIn .4s ease forwards}
-@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.feed-empty{padding:28px;text-align:center;font-size:12px;color:var(--dim)}
+.new-alarm{animation:slideIn .35s ease forwards}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 
-.feed-meta{display:flex;justify-content:space-between;align-items:center;padding:14px 0 0}
+.feed-meta{display:flex;justify-content:space-between;align-items:center;padding:12px 0 0}
 .feed-counts{display:flex;gap:20px}
 .fc{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
-.fc-dot{width:6px;height:6px;border-radius:50%}
-.feed-status{font-size:10px;color:var(--ok);letter-spacing:.08em;display:flex;align-items:center;gap:6px}
-.feed-status::before{
-  content:'';width:6px;height:6px;background:var(--ok);
-  border-radius:50%;display:inline-block;animation:pulse 2s ease infinite;
-}
+.fc-dot{width:5px;height:5px;border-radius:50%}
+.ws-status{font-size:10px;letter-spacing:.08em;display:flex;align-items:center;gap:6px}
+.ws-status.on{color:var(--ok)}.ws-status.off{color:var(--crit)}
+.ws-status::before{content:'';width:5px;height:5px;border-radius:50%;display:inline-block}
+.ws-status.on::before{background:var(--ok);animation:pulse 2s ease infinite}
+.ws-status.off::before{background:var(--crit)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* ── HOW IT WORKS ── */
-.how-section{
-  background:var(--bg2);
-  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
-  padding:80px 40px;
+/* demo banner */
+.demo-banner{
+  background:var(--bg3);border:1px solid var(--border2);
+  padding:20px 24px;margin-top:24px;
+  display:flex;justify-content:space-between;align-items:center;gap:20px;
 }
-.how-inner{max-width:1100px;margin:0 auto}
-.steps{
+.demo-banner p{font-size:13px;color:var(--muted);line-height:1.6}
+.demo-banner strong{color:var(--text);font-weight:500}
+
+/* HOW IT WORKS */
+.how{
   display:grid;grid-template-columns:repeat(4,1fr);
   gap:1px;background:var(--border);
-  border:1px solid var(--border);margin-top:40px;
+  border-bottom:1px solid var(--border);
 }
-.step{background:var(--bg2);padding:32px 28px}
-.step-num{font-size:11px;letter-spacing:.16em;color:var(--amber);margin-bottom:16px}
-.step-title{font-family:var(--display);font-size:17px;font-weight:700;color:#fff;margin-bottom:10px;line-height:1.2}
-.step-desc{font-size:12px;line-height:1.8;color:var(--muted)}
+.how-step{background:var(--bg);padding:36px 32px}
+.how-num{font-size:10px;letter-spacing:.16em;color:var(--blue);margin-bottom:14px}
+.how-title{font-family:var(--serif);font-size:18px;color:var(--text);margin-bottom:10px;line-height:1.2}
+.how-desc{font-family:var(--sans);font-size:12px;line-height:1.8;color:var(--muted);font-weight:300}
 
-/* ── CTA / CONTACT ── */
+/* SMS DEMO */
 .cta-section{
-  max-width:1100px;margin:0 auto;padding:80px 40px;
-  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;
+  display:grid;grid-template-columns:1fr 1fr;
+  border-bottom:1px solid var(--border);background:var(--bg);
 }
-.cta-form{display:flex;flex-direction:column;gap:12px}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-input{
-  background:var(--bg2);border:1px solid var(--border2);
-  color:var(--text);font-family:var(--mono);font-size:12px;
-  padding:11px 14px;outline:none;transition:border-color .15s;width:100%;
-}
-.form-input::placeholder{color:var(--dim)}
-.form-input:focus{border-color:var(--amber)}
-.form-select{
-  background:var(--bg2);border:1px solid var(--border2);
-  color:var(--muted);font-family:var(--mono);font-size:12px;
-  padding:11px 14px;outline:none;width:100%;appearance:none;cursor:pointer;
-}
-.form-select:focus{border-color:var(--amber);color:var(--text)}
-.submit-btn{
-  background:var(--amber);color:var(--bg);
-  font-family:var(--mono);font-size:11px;letter-spacing:.1em;
-  text-transform:uppercase;border:none;padding:13px;
-  cursor:pointer;font-weight:500;transition:background .15s;margin-top:4px;
-}
-.submit-btn:hover{background:var(--amber2)}
-.success-msg{
-  display:none;
-  background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);
-  padding:16px;font-size:12px;color:var(--ok);line-height:1.7;
-}
+.cta-l{padding:56px;border-right:1px solid var(--border)}
+.cta-r{padding:56px;background:var(--bg2)}
 
-/* ── SMS DEMO ── */
-.sms-demo{background:var(--bg2);border:1px solid var(--border2)}
-.sms-demo-top{padding:20px 24px;border-bottom:1px solid var(--border)}
-.sms-label{font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
-.sms-bubble{
-  background:var(--bg3);padding:14px 16px;
-  font-size:12px;line-height:1.8;color:var(--text);
-  border-left:2px solid var(--amber);
-}
-.sms-meta{font-size:10px;color:var(--dim);margin-top:8px;text-align:right}
-.sms-demo-bottom{padding:20px 24px;display:flex;gap:12px;align-items:center}
+.sms-demo{background:var(--bg3);border:1px solid var(--border2)}
+.sms-top{padding:20px 24px;border-bottom:1px solid var(--border)}
+.sms-label-txt{font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
+.sms-bubble{background:var(--bg);padding:14px 16px;font-size:12px;line-height:1.8;color:var(--text);border-left:2px solid var(--blue)}
+.sms-meta-txt{font-size:10px;color:var(--dim);margin-top:8px;text-align:right}
+.sms-bottom{padding:20px 24px;display:flex;gap:12px;align-items:center}
 .fire-btn{
   background:transparent;border:1px solid var(--border2);
   color:var(--muted);font-family:var(--mono);font-size:10px;
@@ -254,34 +249,53 @@ nav{
 .fire-btn.fired{border-color:var(--ok);color:var(--ok)}
 .demo-note{font-size:10px;color:var(--dim);flex:1}
 
-/* ── FOOTER ── */
-footer{
-  border-top:1px solid var(--border);
-  padding:28px 40px;
-  display:flex;justify-content:space-between;align-items:center;
+.cta-form{display:flex;flex-direction:column;gap:12px;margin-top:32px}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-input{
+  background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text);font-family:var(--mono);font-size:12px;
+  padding:11px 14px;outline:none;transition:border-color .15s;width:100%;
 }
-.footer-logo{font-size:11px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+.form-input::placeholder{color:var(--dim)}
+.form-input:focus{border-color:var(--blue)}
+.form-select{
+  background:var(--bg3);border:1px solid var(--border2);
+  color:var(--muted);font-family:var(--mono);font-size:12px;
+  padding:11px 14px;outline:none;width:100%;appearance:none;cursor:pointer;
+}
+.form-select:focus{border-color:var(--blue);color:var(--text)}
+.submit-btn{
+  background:var(--blue);color:var(--bg);font-family:var(--mono);
+  font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  border:none;padding:13px;cursor:pointer;transition:background .2s;margin-top:4px;
+}
+.submit-btn:hover{background:var(--blue2)}
+.success-msg{display:none;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);padding:16px;font-size:12px;color:var(--ok);line-height:1.7}
+
+/* FOOTER */
+footer{padding:24px 56px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border)}
+.footer-logo{font-size:10px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
 .footer-links{display:flex;gap:24px}
-.footer-links a{font-size:11px;color:var(--dim);text-decoration:none;letter-spacing:.06em;transition:color .15s}
+.footer-links a{font-size:10px;color:var(--dim);text-decoration:none;letter-spacing:.06em;transition:color .15s}
 .footer-links a:hover{color:var(--muted)}
 
-/* ── RESPONSIVE ── */
-@media(max-width:768px){
+/* RESPONSIVE */
+@media(max-width:900px){
   nav{padding:16px 20px}
-  .nav-links{gap:16px}
   .nav-links a:not(.nav-cta){display:none}
-  .hero{grid-template-columns:1fr;padding:60px 20px 40px;gap:40px}
-  .hero-h1{font-size:36px}
-  .stats-bar{flex-wrap:wrap}
-  .stat{flex:1 1 50%;padding:20px}
-  .feed-section{padding:60px 20px}
-  .feed-header,.alarm-row{grid-template-columns:40px 1fr 80px 60px}
-  .feed-header span:nth-child(3),.feed-header span:nth-child(5),
-  .alarm-row .al-obj,.alarm-row .muted-badge{display:none}
-  .how-section{padding:60px 20px}
-  .steps{grid-template-columns:1fr 1fr}
-  .cta-section{grid-template-columns:1fr;padding:60px 20px;gap:40px}
-  footer{padding:20px;flex-direction:column;gap:16px;text-align:center}
+  .hero-copy,.feed-section,.cta-section{grid-template-columns:1fr}
+  .hero-l,.hero-r,.feed-l,.feed-r,.cta-l,.cta-r{padding:40px 24px;border-right:none;border-bottom:1px solid var(--border)}
+  h1{font-size:44px}
+  .proof{flex-wrap:wrap}
+  .proof-item{flex:1 1 50%;padding:16px 24px}
+  .how{grid-template-columns:1fr 1fr}
+  .feed-col-hdr,.a-row{grid-template-columns:32px 1fr 80px 70px}
+  .feed-col-hdr span:nth-child(3),
+  .feed-col-hdr span:nth-child(5),
+  .a-row .al-desc,
+  .a-row .al-bldg{display:none}
+  footer{padding:20px 24px;flex-direction:column;gap:14px;text-align:center}
+  .demo-banner{flex-direction:column;align-items:flex-start}
 }
 </style>
 </head>
@@ -292,214 +306,337 @@ footer{
   <div class="nav-links">
     <a href="#how">How it works</a>
     <a href="#feed">Live feed</a>
+    <a href="/demo">Multi-building demo</a>
     <a href="#contact">Contact</a>
     <a class="nav-cta" href="#contact">Request access</a>
   </div>
 </nav>
 
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-left">
-    <div class="tag">BMS Alarm Intelligence</div>
-    <h1 class="hero-h1">Stop ignoring<br>your <em>alarms.</em></h1>
-    <p class="hero-sub">Arbiter filters BACnet device noise and sends one SMS when it actually matters. No dashboards to babysit. No alert storms. Just the signal.</p>
+<!-- HERO SHIP ILLUSTRATION -->
+<svg class="hero-ship" viewBox="0 0 1200 520" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <radialGradient id="planetGlow" cx="50%" cy="100%" r="70%">
+    <stop offset="0%"   stop-color="#00c8ff" stop-opacity="0.55"/>
+    <stop offset="35%"  stop-color="#0066cc" stop-opacity="0.25"/>
+    <stop offset="70%"  stop-color="#001a3d" stop-opacity="0.12"/>
+    <stop offset="100%" stop-color="#010409" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+    <stop offset="0%"   stop-color="#80e8ff" stop-opacity="0.9"/>
+    <stop offset="40%"  stop-color="#4ab0ff" stop-opacity="0.5"/>
+    <stop offset="100%" stop-color="#4ab0ff" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="shipLight" cx="50%" cy="80%" r="60%">
+    <stop offset="0%"   stop-color="#00aaff" stop-opacity="0.28"/>
+    <stop offset="100%" stop-color="#00aaff" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="hullDark" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%"   stop-color="#0e1c30"/>
+    <stop offset="100%" stop-color="#040a16"/>
+  </linearGradient>
+  <linearGradient id="wingDark" x1="0%" y1="0%" x2="100%" y2="60%">
+    <stop offset="0%"   stop-color="#0a1626"/>
+    <stop offset="100%" stop-color="#020609"/>
+  </linearGradient>
+  <linearGradient id="beamFade" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%"   stop-color="#00d4ff" stop-opacity="0.5"/>
+    <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="planetEdge" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%"   stop-color="#00e5ff"/>
+    <stop offset="100%" stop-color="#0044aa"/>
+  </linearGradient>
+  <linearGradient id="accentHull" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%"   stop-color="#0d2550"/>
+    <stop offset="100%" stop-color="#1a3a6e"/>
+  </linearGradient>
+  <clipPath id="heroClip"><rect width="1200" height="520"/></clipPath>
+</defs>
+<g clip-path="url(#heroClip)">
+
+<!-- BACKGROUND -->
+<rect width="1200" height="520" fill="#010409"/>
+
+<!-- STARS -->
+<circle cx="80"   cy="40"  r="0.8" fill="#fff" opacity="0.65"/>
+<circle cx="195"  cy="88"  r="0.5" fill="#fff" opacity="0.45"/>
+<circle cx="315"  cy="28"  r="1"   fill="#fff" opacity="0.7"/>
+<circle cx="445"  cy="68"  r="0.6" fill="#fff" opacity="0.5"/>
+<circle cx="525"  cy="18"  r="0.8" fill="#fff" opacity="0.6"/>
+<circle cx="685"  cy="52"  r="0.5" fill="#fff" opacity="0.4"/>
+<circle cx="755"  cy="14"  r="1"   fill="#fff" opacity="0.7"/>
+<circle cx="862"  cy="78"  r="0.7" fill="#fff" opacity="0.5"/>
+<circle cx="952"  cy="32"  r="0.9" fill="#fff" opacity="0.6"/>
+<circle cx="1055" cy="58"  r="0.5" fill="#fff" opacity="0.4"/>
+<circle cx="1125" cy="22"  r="0.8" fill="#fff" opacity="0.6"/>
+<circle cx="152"  cy="178" r="0.5" fill="#fff" opacity="0.3"/>
+<circle cx="332"  cy="148" r="0.5" fill="#fff" opacity="0.4"/>
+<circle cx="902"  cy="138" r="0.6" fill="#fff" opacity="0.35"/>
+<circle cx="1082" cy="168" r="0.5" fill="#fff" opacity="0.3"/>
+<circle cx="58"   cy="295" r="0.5" fill="#fff" opacity="0.25"/>
+<circle cx="1102" cy="275" r="0.5" fill="#fff" opacity="0.25"/>
+<circle cx="420"  cy="110" r="0.4" fill="#7ec8ff" opacity="0.5"/>
+<circle cx="780"  cy="95"  r="0.4" fill="#7ec8ff" opacity="0.5"/>
+
+<!-- PLANET -->
+<ellipse cx="600" cy="820" rx="680" ry="660" fill="#020d1e"/>
+<ellipse cx="600" cy="820" rx="680" ry="660" fill="none" stroke="url(#planetEdge)" stroke-width="2.5" opacity="0.7"/>
+<ellipse cx="600" cy="820" rx="690" ry="670" fill="none" stroke="#00aaff" stroke-width="6" opacity="0.1"/>
+<ellipse cx="600" cy="820" rx="700" ry="680" fill="none" stroke="#00d4ff" stroke-width="3" opacity="0.06"/>
+<ellipse cx="600" cy="820" rx="680" ry="660" fill="url(#planetGlow)"/>
+<!-- atmosphere bloom upward -->
+<rect x="0" y="280" width="1200" height="240" fill="url(#planetGlow)" opacity="0.9"/>
+
+<!-- PSI BEAMS — wide, sweeping, theatrical -->
+<polygon points="548,248 492,234 80,520  230,520"  fill="url(#beamFade)" opacity="0.16"/>
+<polygon points="562,252 526,240 280,520 415,520"  fill="url(#beamFade)" opacity="0.2"/>
+<polygon points="638,252 674,240 785,520 920,520"  fill="url(#beamFade)" opacity="0.2"/>
+<polygon points="652,248 708,234 970,520 1120,520" fill="url(#beamFade)" opacity="0.16"/>
+<polygon points="588,256 612,256 648,520 552,520"  fill="url(#beamFade)" opacity="0.26"/>
+<!-- beam edge lines -->
+<line x1="548" y1="248" x2="80"   y2="520" stroke="#00e5ff" stroke-width="0.6" opacity="0.3"/>
+<line x1="562" y1="252" x2="280"  y2="520" stroke="#00e5ff" stroke-width="0.8" opacity="0.38"/>
+<line x1="638" y1="252" x2="920"  y2="520" stroke="#00e5ff" stroke-width="0.8" opacity="0.38"/>
+<line x1="652" y1="248" x2="1120" y2="520" stroke="#00e5ff" stroke-width="0.6" opacity="0.3"/>
+
+<!-- SHIP centered at 600, 245 -->
+<g transform="translate(600, 245)">
+  <!-- underlight from planet -->
+  <ellipse cx="0" cy="18" rx="130" ry="44" fill="url(#shipLight)"/>
+
+  <!-- LEFT WING -->
+  <polygon points="-16,-13 -268,-54 -292,-28 -250,16 -16,8" fill="url(#wingDark)" stroke="#0a1e38" stroke-width="0.8"/>
+  <polygon points="-16,-10 -205,-43 -215,-21 -178,6 -16,4"  fill="#060e1c" stroke="#0d1e36" stroke-width="0.5"/>
+  <polygon points="-252,-50 -288,-30 -268,-14 -233,-25" fill="url(#accentHull)" stroke="#0d2244" stroke-width="0.7"/>
+  <line x1="-16" y1="-11" x2="-270" y2="-52" stroke="#00c8ff" stroke-width="1.3" opacity="0.5"/>
+  <line x1="-16" y1="-11" x2="-270" y2="-52" stroke="#9a7a28" stroke-width="0.7" opacity="0.35"/>
+  <line x1="-32" y1="3"   x2="-175" y2="-12" stroke="#081628" stroke-width="0.5"/>
+  <line x1="-52" y1="1"   x2="-155" y2="-16" stroke="#081628" stroke-width="0.4"/>
+
+  <!-- RIGHT WING -->
+  <polygon points="16,-13  268,-54  292,-28  250,16  16,8"  fill="url(#wingDark)" stroke="#0a1e38" stroke-width="0.8"/>
+  <polygon points="16,-10  205,-43  215,-21  178,6   16,4"  fill="#060e1c" stroke="#0d1e36" stroke-width="0.5"/>
+  <polygon points="252,-50 288,-30  268,-14  233,-25" fill="url(#accentHull)" stroke="#0d2244" stroke-width="0.7"/>
+  <line x1="16" y1="-11" x2="270" y2="-52" stroke="#00c8ff" stroke-width="1.3" opacity="0.5"/>
+  <line x1="16" y1="-11" x2="270" y2="-52" stroke="#9a7a28" stroke-width="0.7" opacity="0.35"/>
+  <line x1="32" y1="3"   x2="175" y2="-12" stroke="#081628" stroke-width="0.5"/>
+  <line x1="52" y1="1"   x2="155" y2="-16" stroke="#081628" stroke-width="0.4"/>
+
+  <!-- TAIL FINS -->
+  <polygon points="-13,9 -72,74 -50,80 -9,22"  fill="#040c18" stroke="#081628" stroke-width="0.7"/>
+  <polygon points="13,9   72,74  50,80  9,22"   fill="#040c18" stroke="#081628" stroke-width="0.7"/>
+  <line x1="-13" y1="11" x2="-70" y2="72" stroke="#00aaff" stroke-width="0.7" opacity="0.28"/>
+  <line x1="13"  y1="11" x2="70"  y2="72" stroke="#00aaff" stroke-width="0.7" opacity="0.28"/>
+
+  <!-- MAIN HULL -->
+  <polygon points="0,-38 -27,-16 -23,27 0,37 23,27 27,-16" fill="url(#hullDark)" stroke="#0d2244" stroke-width="1"/>
+  <line x1="-25" y1="-4" x2="25" y2="-4"  stroke="#0d2244" stroke-width="0.6"/>
+  <line x1="-23" y1="11" x2="23" y2="11"  stroke="#0d2244" stroke-width="0.5"/>
+  <line x1="-27" y1="-16" x2="-23" y2="27" stroke="#00aaff" stroke-width="0.9" opacity="0.32"/>
+  <line x1="27"  y1="-16" x2="23"  y2="27" stroke="#00aaff" stroke-width="0.9" opacity="0.32"/>
+  <line x1="-13" y1="-33" x2="13" y2="-33" stroke="#9a7a28" stroke-width="0.8" opacity="0.55"/>
+
+  <!-- NOSE -->
+  <polygon points="0,-38 -13,-19 13,-19" fill="#0d1e38" stroke="#0d2244" stroke-width="0.8"/>
+  <circle cx="0" cy="-31" r="2" fill="#00aaff" opacity="0.85"/>
+
+  <!-- CORE -->
+  <circle cx="0" cy="-2" r="24" fill="url(#coreGlow)" opacity="0.25"/>
+  <circle cx="0" cy="-2" r="16" fill="none" stroke="#0d2a50" stroke-width="1.5"/>
+  <line x1="0" y1="-18" x2="0" y2="-14"  stroke="#00c8ff" stroke-width="1.1" opacity="0.75"/>
+  <line x1="0" y1="14"  x2="0" y2="10"   stroke="#00c8ff" stroke-width="1.1" opacity="0.75"/>
+  <line x1="-18" y1="-2" x2="-14" y2="-2" stroke="#00c8ff" stroke-width="1.1" opacity="0.75"/>
+  <line x1="18"  y1="-2" x2="14"  y2="-2" stroke="#00c8ff" stroke-width="1.1" opacity="0.75"/>
+  <circle cx="0" cy="-2" r="11" fill="#03091a"/>
+  <circle cx="0" cy="-2" r="7"  fill="#1a6aaa"/>
+  <circle cx="0" cy="-2" r="5"  fill="#40a8e0"/>
+  <circle cx="-2" cy="-4" r="3" fill="#90d8ff" opacity="0.75"/>
+  <circle cx="0"  cy="-2" r="1.5" fill="#ffffff"/>
+  <line x1="-7"  y1="-2" x2="-23" y2="-2"  stroke="#00c8ff" stroke-width="0.8" opacity="0.5"/>
+  <line x1="7"   y1="-2" x2="23"  y2="-2"  stroke="#00c8ff" stroke-width="0.8" opacity="0.5"/>
+  <line x1="0"   y1="-9" x2="0"   y2="-25" stroke="#00c8ff" stroke-width="0.8" opacity="0.45"/>
+
+  <!-- PYLONS -->
+  <circle cx="-40" cy="-5" r="5.5" fill="#040c18" stroke="#0d2244" stroke-width="1"/>
+  <circle cx="-40" cy="-5" r="2.8" fill="#00aaff" opacity="0.9"/>
+  <circle cx="40"  cy="-5" r="5.5" fill="#040c18" stroke="#0d2244" stroke-width="1"/>
+  <circle cx="40"  cy="-5" r="2.8" fill="#00aaff" opacity="0.9"/>
+
+  <!-- EXHAUST -->
+  <rect x="-8" y="27" width="5" height="8" rx="1" fill="#030810" stroke="#0d2244" stroke-width="0.5"/>
+  <rect x="3"  y="27" width="5" height="8" rx="1" fill="#030810" stroke="#0d2244" stroke-width="0.5"/>
+  <rect x="-2" y="28" width="5" height="6" rx="1" fill="#0d2244" stroke="#00aaff" stroke-width="0.6" opacity="0.7"/>
+
+  <!-- WING TIP NODES -->
+  <circle cx="-282" cy="-26" r="3.5" fill="#040c18" stroke="#00aaff" stroke-width="0.8"/>
+  <circle cx="-282" cy="-26" r="1.8" fill="#00e5ff" opacity="1"/>
+  <circle cx="282"  cy="-26" r="3.5" fill="#040c18" stroke="#00aaff" stroke-width="0.8"/>
+  <circle cx="282"  cy="-26" r="1.8" fill="#00e5ff" opacity="1"/>
+</g>
+
+<!-- DISTANT FLEET -->
+<g opacity="0.38">
+  <polygon points="88,182  73,192  93,197  108,190"  fill="#0a1e38"/>
+  <polygon points="96,187  83,195  98,199"            fill="#061428"/>
+  <polygon points="142,162 127,172 147,177 162,169"  fill="#0a1e38"/>
+  <polygon points="112,200 100,208 118,212"           fill="#061428"/>
+</g>
+<g opacity="0.33">
+  <polygon points="1052,197 1037,207 1057,212 1072,204" fill="#0a1e38"/>
+  <polygon points="1060,202 1047,210 1062,214"           fill="#061428"/>
+  <polygon points="1102,177 1087,187 1107,192 1122,184"  fill="#0a1e38"/>
+</g>
+
+</g>
+</svg>
+
+<!-- HERO COPY -->
+<div class="hero-copy">
+  <div class="hero-l">
+    <div class="eyebrow">BMS Alarm Intelligence</div>
+    <h1>The alarms<br>that matter.<br>Nothing else.</h1>
+    <p class="hero-sub">Arbiter watches every BACnet device on your site, filters the noise, and delivers one SMS when something actually needs your attention.</p>
+    <div class="cloak-note">
+      <strong>Cloaking the noise.</strong> 97% of BMS chatter suppressed before it reaches you — only actionable alerts get through.
+    </div>
     <div class="hero-actions">
       <a class="btn-primary" href="#contact">Request access</a>
-      <a class="btn-ghost" href="#feed">See live feed &rarr;</a>
+      <a class="btn-ghost" href="/demo">See the filter</a>
     </div>
   </div>
-  <div class="hero-right">
-    <div class="terminal">
-      <div class="terminal-bar">
-        <div class="t-dot r"></div>
-        <div class="t-dot y"></div>
-        <div class="t-dot g"></div>
-        <span class="terminal-title">Arbiter &middot; Legion of Honor &middot; Live</span>
-      </div>
-      <div class="terminal-body">
-        <div class="t-line"><span class="prompt">&rarr; </span><span class="cmd">polling SC-01 [10.10.60.5:47809]</span></div>
-        <div class="t-line"><span class="ok">&#10003; </span><span class="cmd">device 10000 &mdash; 34 objects</span></div>
-        <div class="t-line"><span class="ok">&#10003; </span><span class="cmd">device 11001 (UC600) &mdash; 48 objects</span></div>
-        <div class="t-line"><span class="ok">&#10003; </span><span class="cmd">device 11002 (DriSteem VL6) &mdash; 12 objects</span></div>
-        <div class="t-line" style="margin-top:8px"><span class="prompt">&rarr; </span><span class="cmd">evaluating 94 objects against rules</span></div>
-        <div class="t-line"><span class="warn">&#9888; </span><span class="warn">SpaceRH &mdash; 62.4% RH (limit 60%) SCORE 87</span></div>
-        <div class="t-line"><span class="crit">&#10007; </span><span class="crit">Supply Air Temp &mdash; 93.1&deg;F (limit 85&deg;F) SCORE 100</span></div>
-        <div class="t-line" style="color:var(--dim)">&nbsp;&nbsp;&#8856; CHW Pump DP &mdash; 81.2 PSI (normal range) suppressed</div>
-        <div class="t-line" style="color:var(--dim)">&nbsp;&nbsp;&#8856; Zone Temp FC-4 &mdash; 72.1&deg;F (in range) suppressed</div>
-        <div class="t-line" style="margin-top:8px"><span class="prompt">&rarr; </span><span class="amber">SMS dispatched &middot; 2 alerts &middot; 510-XXX-XXXX</span></div>
-        <div class="t-line"><span class="prompt">&rarr; </span><span class="cmd">next poll in 58s <span class="t-cursor"></span></span></div>
-      </div>
+  <div class="hero-r">
+    <div class="term-label">Legion of Honor &middot; SC-01 &middot; Live</div>
+    <div class="t-line"><span style="color:var(--dim)">&rarr; </span><span class="t-c">polling 94 objects across 3 devices</span></div>
+    <div class="t-line"><span class="t-wa">&#9888; </span><span class="t-wa">SpaceRH 62.4%RH &mdash; limit 60% &mdash; SCORE 87</span></div>
+    <div class="t-line"><span class="t-cr">&#10007; </span><span class="t-cr">Supply Air 93.1&deg;F &mdash; limit 85&deg;F &mdash; SCORE 100</span></div>
+    <div class="t-line" style="color:var(--dim)">&#8856; CHW Pump DP 81.2 PSI &mdash; suppressed</div>
+    <div class="t-line" style="color:var(--dim)">&#8856; Zone Temp FC-4 72.1&deg;F &mdash; suppressed</div>
+    <div class="t-line"><span style="color:var(--dim)">&rarr; </span><span class="t-bl">SMS dispatched &middot; 2 alerts &middot; 510-XXX-XXXX</span></div>
+    <div class="t-line"><span style="color:var(--dim)">&rarr; </span><span class="t-c">next poll in 58s <span class="t-cursor"></span></span></div>
+    <div class="mini-stats">
+      <div class="ms"><div class="ms-num">97<span>%</span></div><div class="ms-lbl">Noise filtered</div></div>
+      <div class="ms" style="border-left:1px solid var(--border)"><div class="ms-num">&lt;30<span>s</span></div><div class="ms-lbl">SMS delivery</div></div>
+      <div class="ms" style="border-left:1px solid var(--border)"><div class="ms-num">24<span>/7</span></div><div class="ms-lbl">BACnet polling</div></div>
     </div>
   </div>
 </div>
 
-<!-- STATS BAR -->
-<div class="stats-bar">
-  <div class="stat">
-    <div class="stat-num">97<span>%</span></div>
-    <div class="stat-label">Noise filtered</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num">&lt;30<span>s</span></div>
-    <div class="stat-label">SMS delivery</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num">24<span>/7</span></div>
-    <div class="stat-label">BACnet polling</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num">1<span> site</span></div>
-    <div class="stat-label">Live in production</div>
-  </div>
+<!-- PROOF BAR -->
+<div class="proof">
+  <div class="proof-item"><span class="proof-acc">&#9658;</span><strong>Protocol-native</strong> &mdash; BACnet/IP, no middleware</div>
+  <div class="proof-item"><strong>Self-hosted</strong> &mdash; runs on-site, no cloud dependency</div>
+  <div class="proof-item"><strong>Live in production</strong> &mdash; Legion of Honor, SF</div>
 </div>
 
 <!-- LIVE FEED -->
 <div class="feed-section" id="feed">
-  <div class="section-label">Live alarm stream</div>
-  <h2 class="section-h2">Prioritized. Not buried.</h2>
-  <p class="section-sub">Every alarm scored against site-specific rules. Low-value events suppressed before they reach you.</p>
+  <div class="feed-l">
+    <div class="sec-label">Live alarm stream</div>
+    <h2 class="sec-h2">Prioritized. Not buried.</h2>
+    <p class="sec-sub">Every alarm scored against site-specific rules. Low-value noise suppressed before it reaches you.</p>
 
-  <div class="feed-header">
-    <span style="text-align:center">Sev</span>
-    <span>Device</span>
-    <span>Object</span>
-    <span>Value</span>
-    <span>Status</span>
-    <span>Time</span>
-  </div>
-  <div class="alarm-list" id="alarm-list">
-    <div class="alarm-row crit">
-      <div style="text-align:center"><div class="sev-dot crit"></div></div>
-      <div class="al-device">AHU-01 (Tracer SC+)</div>
-      <div class="al-obj">Supply Air Temp</div>
-      <div class="al-val over">93.1&deg;F</div>
-      <div></div>
-      <div class="al-time">18:24:02</div>
+    <div class="b-tabs" id="building-tabs">
+      <button class="b-tab active" data-building="all">All buildings</button>
+      <button class="b-tab" data-building="Legion of Honor">Legion of Honor</button>
+      <button class="b-tab" data-building="Office Tower">Office Tower</button>
+      <button class="b-tab" data-building="Hospital/Lab">Hospital / Lab</button>
+      <button class="b-tab" data-building="Data Center">Data Center</button>
+      <button class="b-tab" data-building="Warehouse">Warehouse</button>
     </div>
-    <div class="alarm-row crit">
-      <div style="text-align:center"><div class="sev-dot crit"></div></div>
-      <div class="al-device">FCU-2-11</div>
-      <div class="al-obj">Valve Position</div>
-      <div class="al-val fault">FAULT &mdash; LEAK</div>
-      <div></div>
-      <div class="al-time">18:23:42</div>
+    <div class="feed-wrap">
+      <div class="feed-col-hdr">
+        <span style="text-align:center">Sev</span>
+        <span style="padding-left:4px">Device</span>
+        <span>Description</span>
+        <span>Value</span>
+        <span>Building</span>
+        <span>Time</span>
+      </div>
+      <div class="alarm-list" id="feed-rows">
+        <div class="feed-empty" id="feed-empty">Connecting to BMS&hellip;</div>
+      </div>
     </div>
-    <div class="alarm-row warn">
-      <div style="text-align:center"><div class="sev-dot warn"></div></div>
-      <div class="al-device">DriSteem VL6</div>
-      <div class="al-obj">Humidity</div>
-      <div class="al-val over">62.4% RH</div>
-      <div></div>
-      <div class="al-time">18:22:15</div>
+    <div class="feed-meta">
+      <div class="feed-counts">
+        <span class="fc"><div class="fc-dot" style="background:var(--crit)"></div><span id="cnt-crit">0</span>&nbsp;critical</span>
+        <span class="fc"><div class="fc-dot" style="background:var(--warn)"></div><span id="cnt-warn">0</span>&nbsp;high</span>
+        <span class="fc"><div class="fc-dot" style="background:var(--ok)"></div><span id="cnt-ok">0</span>&nbsp;cleared</span>
+      </div>
+      <div class="ws-status off" id="ws-status">Connecting&hellip;</div>
     </div>
-    <div class="alarm-row warn">
-      <div style="text-align:center"><div class="sev-dot warn"></div></div>
-      <div class="al-device">Boiler-01</div>
-      <div class="al-obj">Flue Gas Temp</div>
-      <div class="al-val over">412&deg;F</div>
-      <div></div>
-      <div class="al-time">18:19:02</div>
-    </div>
-    <div class="alarm-row low">
-      <div style="text-align:center"><div class="sev-dot low"></div></div>
-      <div class="al-device" style="color:var(--muted)">CHW-PUMP-01</div>
-      <div class="al-obj" style="color:var(--dim)">Discharge Pressure</div>
-      <div class="al-val" style="color:var(--dim)">82.7 PSI</div>
-      <div><span class="muted-badge">MUTED</span></div>
-      <div class="al-time">18:18:51</div>
-    </div>
-    <div class="alarm-row low">
-      <div style="text-align:center"><div class="sev-dot low"></div></div>
-      <div class="al-device" style="color:var(--muted)">VAV-2-14 (UC600)</div>
-      <div class="al-obj" style="color:var(--dim)">Zone Temp</div>
-      <div class="al-val" style="color:var(--dim)">72.1&deg;F</div>
-      <div><span class="muted-badge">MUTED</span></div>
-      <div class="al-time">18:16:30</div>
+    <div class="demo-banner">
+      <p><strong>See Arbiter filter in action.</strong><br>Watch 50+ raw alarms across 5 buildings get compressed to a handful of actionable alerts.</p>
+      <a class="btn-ghost" href="/demo" style="white-space:nowrap;flex-shrink:0">Multi-building demo &rarr;</a>
     </div>
   </div>
-  <div class="feed-meta">
-    <div class="feed-counts">
-      <span class="fc"><div class="fc-dot" style="background:var(--crit)"></div>2 critical</span>
-      <span class="fc"><div class="fc-dot" style="background:var(--warn)"></div>2 high</span>
-      <span class="fc"><div class="fc-dot" style="background:var(--dim)"></div>2 silenced</span>
-    </div>
-    <div class="feed-status">BACnet/IP gateway connected</div>
-  </div>
-</div>
-
-<!-- HOW IT WORKS -->
-<div class="how-section" id="how">
-  <div class="how-inner">
-    <div class="section-label">How it works</div>
-    <h2 class="section-h2">From BACnet to your phone.</h2>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">01</div>
-        <div class="step-title">Poll BACnet devices</div>
-        <div class="step-desc">Arbiter runs on-site, reading present values from controllers every 60 seconds over native BACnet/IP.</div>
+  <div class="feed-r">
+    <div class="sec-label">How it works</div>
+    <h2 class="sec-h2" id="how">From BACnet<br>to your phone.</h2>
+    <div style="margin-top:32px">
+      <div style="padding:24px 0;border-bottom:1px solid var(--border)">
+        <div class="how-num" style="margin-bottom:8px">01</div>
+        <div class="how-title" style="font-family:var(--serif);font-size:17px;color:var(--text);margin-bottom:6px">Poll BACnet devices</div>
+        <p style="font-family:var(--sans);font-size:12px;line-height:1.8;color:var(--muted);font-weight:300">Arbiter runs on-site, reading present values from controllers every 60 seconds over native BACnet/IP.</p>
       </div>
-      <div class="step">
-        <div class="step-num">02</div>
-        <div class="step-title">Score against rules</div>
-        <div class="step-desc">Each reading is evaluated against site-specific threshold rules. Events below the noise floor are suppressed before they leave the building.</div>
+      <div style="padding:24px 0;border-bottom:1px solid var(--border)">
+        <div class="how-num" style="margin-bottom:8px">02</div>
+        <div class="how-title" style="font-family:var(--serif);font-size:17px;color:var(--text);margin-bottom:6px">Score against rules</div>
+        <p style="font-family:var(--sans);font-size:12px;line-height:1.8;color:var(--muted);font-weight:300">Each reading is evaluated against site-specific thresholds. Events below the noise floor are suppressed.</p>
       </div>
-      <div class="step">
-        <div class="step-num">03</div>
-        <div class="step-title">Filter the noise</div>
-        <div class="step-desc">Only alarms that clear the priority threshold are forwarded. 97% of BMS chatter never reaches the engineer.</div>
+      <div style="padding:24px 0;border-bottom:1px solid var(--border)">
+        <div class="how-num" style="margin-bottom:8px">03</div>
+        <div class="how-title" style="font-family:var(--serif);font-size:17px;color:var(--text);margin-bottom:6px">Cloak the noise</div>
+        <p style="font-family:var(--sans);font-size:12px;line-height:1.8;color:var(--muted);font-weight:300">97% of BMS chatter never reaches the engineer. Only alarms that clear the priority threshold are forwarded.</p>
       </div>
-      <div class="step">
-        <div class="step-num">04</div>
-        <div class="step-title">SMS in under 30s</div>
-        <div class="step-desc">Actionable alerts arrive by text with device, object, value, and threshold. No app required. No login. No dashboard.</div>
+      <div style="padding:24px 0">
+        <div class="how-num" style="margin-bottom:8px">04</div>
+        <div class="how-title" style="font-family:var(--serif);font-size:17px;color:var(--text);margin-bottom:6px">Recall to action</div>
+        <p style="font-family:var(--sans);font-size:12px;line-height:1.8;color:var(--muted);font-weight:300">One SMS — device, object, value, threshold. No app. No login. No dashboard. Just the signal.</p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- CONTACT / CTA -->
+<!-- CONTACT -->
 <div class="cta-section" id="contact">
-  <div class="cta-left">
-    <div class="section-label">Early access</div>
-    <h2 class="section-h2">Built for engineers<br>in the field.</h2>
-    <p class="section-sub" style="margin-bottom:0">Arbiter is in active development at the Legion of Honor. Early access is limited to facilities engineers and building operators.</p>
+  <div class="cta-l">
+    <div class="sec-label">Early access</div>
+    <h2 class="sec-h2">Built for engineers<br>in the field.</h2>
+    <p style="font-family:var(--sans);font-size:14px;color:var(--muted);line-height:1.8;margin-top:12px;font-weight:300">Arbiter is in active development at the Legion of Honor. Early access is limited to facilities engineers and building operators.</p>
+    <div class="cta-form">
+      <div class="form-2col">
+        <input class="form-input" id="f-name" type="text" placeholder="Name">
+        <input class="form-input" id="f-email" type="email" placeholder="Email">
+      </div>
+      <input class="form-input" id="f-facility" type="text" placeholder="Facility / building name">
+      <select class="form-select" id="f-bms">
+        <option value="" disabled selected>BMS platform</option>
+        <option>Trane Tracer SC+</option>
+        <option>Trane Tracer Ensemble</option>
+        <option>Siemens Desigo</option>
+        <option>Johnson Controls Metasys</option>
+        <option>Honeywell EBI</option>
+        <option>Automated Logic WebCTRL</option>
+        <option>Other BACnet system</option>
+      </select>
+      <button class="submit-btn" onclick="submitForm()">Request early access</button>
+      <div class="success-msg" id="success-msg">Thanks &mdash; we'll be in touch within 48 hours. Arbiter is deployed on real BMS hardware and we onboard one building at a time.</div>
+    </div>
   </div>
-  <div class="cta-right">
+  <div class="cta-r">
     <div class="sms-demo">
-      <div class="sms-demo-top">
-        <div class="sms-label">Example SMS alert</div>
+      <div class="sms-top">
+        <div class="sms-label-txt">Example SMS alert</div>
         <div class="sms-bubble" id="sms-body">
           [ARBITER] CRITICAL: Supply Air Temp 93.1&deg;F &mdash; limit 85&deg;F<br><br>
           AHU-01 &middot; Trane Tracer SC+<br>
           Legion of Honor BMS &middot; 18:24:02 PST
         </div>
-        <div class="sms-meta" id="sms-meta">Delivered in 1.2s</div>
+        <div class="sms-meta-txt" id="sms-meta">Delivered in 1.2s</div>
       </div>
-      <div class="sms-demo-bottom">
+      <div class="sms-bottom">
         <button class="fire-btn" id="fire-btn" onclick="fireDemo()">&#9654; Fire demo alarm</button>
         <span class="demo-note" id="demo-note">Triggers a simulated alarm</span>
-      </div>
-    </div>
-    <div style="margin-top:20px">
-      <div class="cta-form">
-        <div class="form-row">
-          <input class="form-input" id="f-name" type="text" placeholder="Name">
-          <input class="form-input" id="f-email" type="email" placeholder="Email">
-        </div>
-        <input class="form-input" id="f-facility" type="text" placeholder="Facility / building name">
-        <select class="form-select" id="f-bms">
-          <option value="" disabled selected>BMS platform</option>
-          <option>Trane Tracer SC+</option>
-          <option>Siemens Desigo</option>
-          <option>Johnson Controls Metasys</option>
-          <option>Honeywell EBI</option>
-          <option>Automated Logic WebCTRL</option>
-          <option>Other BACnet system</option>
-        </select>
-        <button class="submit-btn" onclick="submitForm()">Request early access</button>
-        <div class="success-msg" id="success-msg">
-          Thanks &mdash; we'll be in touch within 48 hours. Arbiter is deployed on real BMS hardware and we onboard one building at a time.
-        </div>
       </div>
     </div>
   </div>
@@ -508,6 +645,8 @@ footer{
 <footer>
   <div class="footer-logo">Arbiter &mdash; BMS Alarm Intelligence &middot; StakeBound LLC</div>
   <div class="footer-links">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/demo">Demo</a>
     <a href="/privacy">Privacy</a>
     <a href="/terms">Terms</a>
     <a href="mailto:brian@arbiter.to">Contact</a>
@@ -515,62 +654,115 @@ footer{
 </footer>
 
 <script>
-var demoDone = false;
+var WS_URL = "wss://arbiter-iq7x.onrender.com/ws/alarms";
+var MAX_ROWS = 50;
+var ws = null, reconnectTimer = null, allAlarms = [], activeBuilding = 'all';
 
-function fireDemo() {
-  if (demoDone) return;
-  demoDone = true;
+function fmtTime(iso){try{return new Date(iso).toTimeString().slice(0,8);}catch(e){return '--:--:--';}}
+function sevClass(a){if(a.state==='CLEARED')return 'ok';var s=(a.severity||'').toUpperCase();if(s==='CRITICAL')return 'crit';if(s==='WARNING'||s==='HIGH')return 'warn';return 'info';}
+function valClass(a){if(a.state==='CLEARED')return 'cleared';var s=(a.severity||'').toUpperCase();if(s==='CRITICAL')return 'fault';if(s==='WARNING'||s==='HIGH')return 'over';return '';}
+function fmtVal(a){if(a.value==null)return a.state||'—';var v=typeof a.value==='number'?a.value.toFixed(1):String(a.value);return v+(a.unit?' '+a.unit:'');}
+function trunc(s,n){if(!s)return '—';return s.length>n?s.slice(0,n)+'…':s;}
 
-  var btn = document.getElementById('fire-btn');
-  var note = document.getElementById('demo-note');
-  var sms = document.getElementById('sms-body');
-  var meta = document.getElementById('sms-meta');
-
-  btn.textContent = 'Firing...';
-  note.textContent = 'Dispatching SMS...';
-
-  setTimeout(function() {
-    var now = new Date();
-    var t = now.toTimeString().slice(0, 8);
-    var row = document.createElement('div');
-    row.className = 'alarm-row crit new-alarm';
-    row.innerHTML =
-      '<div style="text-align:center"><div class="sev-dot crit"></div></div>' +
-      '<div class="al-device">DEMO &mdash; SpaceRH</div>' +
-      '<div class="al-obj">Gallery Humidity</div>' +
-      '<div class="al-val over">64.2% RH</div>' +
-      '<div></div>' +
-      '<div class="al-time">' + t + '</div>';
-    var list = document.getElementById('alarm-list');
-    list.insertBefore(row, list.firstChild);
-  }, 600);
-
-  setTimeout(function() {
-    var now = new Date();
-    var t = now.toTimeString().slice(0, 8);
-    sms.innerHTML =
-      '[ARBITER] CRITICAL: Gallery SpaceRH 64.2% RH &mdash; limit 60%<br><br>' +
-      'DriSteem VL6 &middot; Legion of Honor BMS<br>' +
-      t + ' PST';
-    meta.textContent = 'Delivered in 0.9s';
-    btn.classList.add('fired');
-    btn.textContent = '\u2713 SMS sent';
-    note.textContent = 'Alert delivered to on-call engineer';
-  }, 1400);
+function makeRow(a,animate){
+  var row=document.createElement('div');
+  row.className='a-row'+(animate?' new-alarm':'');
+  row.dataset.building=a.building||'';
+  var sc=sevClass(a);
+  row.innerHTML=
+    '<div style="text-align:center"><div class="sev-dot '+sc+'"></div></div>'+
+    '<div class="al-dev">'+trunc(a.device,22)+'</div>'+
+    '<div class="al-desc">'+trunc(a.description||a.point,28)+'</div>'+
+    '<div class="al-val '+valClass(a)+'">'+fmtVal(a)+'</div>'+
+    '<div class="al-bldg">'+trunc(a.building||'—',14)+'</div>'+
+    '<div class="al-time">'+fmtTime(a.timestamp)+'</div>';
+  return row;
 }
 
-function submitForm() {
-  var name = document.getElementById('f-name').value.trim();
-  var email = document.getElementById('f-email').value.trim();
+function updateCounts(){
+  var vis=activeBuilding==='all'?allAlarms:allAlarms.filter(function(a){return a.building===activeBuilding;});
+  var cr=0,wa=0,ok=0;
+  vis.forEach(function(a){var s=sevClass(a);if(s==='crit')cr++;else if(s==='warn')wa++;else if(s==='ok')ok++;});
+  document.getElementById('cnt-crit').textContent=cr;
+  document.getElementById('cnt-warn').textContent=wa;
+  document.getElementById('cnt-ok').textContent=ok;
+}
 
-  if (!name || !email) {
-    if (!name) document.getElementById('f-name').style.borderColor = 'var(--crit)';
-    if (!email) document.getElementById('f-email').style.borderColor = 'var(--crit)';
+function rebuildFeed(){
+  var c=document.getElementById('feed-rows'),e=document.getElementById('feed-empty');
+  var f=activeBuilding==='all'?allAlarms:allAlarms.filter(function(a){return a.building===activeBuilding;});
+  c.querySelectorAll('.a-row').forEach(function(r){r.remove();});
+  if(f.length===0){e.style.display='block';e.textContent=activeBuilding==='all'?'Waiting for alarms…':'No alarms for this building yet.';}
+  else{e.style.display='none';f.slice(0,MAX_ROWS).forEach(function(a){c.appendChild(makeRow(a,false));});}
+  updateCounts();
+}
+
+function prependAlarm(a){
+  allAlarms.unshift(a);
+  if(allAlarms.length>MAX_ROWS*6)allAlarms=allAlarms.slice(0,MAX_ROWS*6);
+  if(activeBuilding!=='all'&&a.building!==activeBuilding){updateCounts();return;}
+  var c=document.getElementById('feed-rows');
+  document.getElementById('feed-empty').style.display='none';
+  c.insertBefore(makeRow(a,true),c.firstChild);
+  var rows=c.querySelectorAll('.a-row');
+  if(rows.length>MAX_ROWS)rows[rows.length-1].remove();
+  updateCounts();
+}
+
+function setWsStatus(on){
+  var el=document.getElementById('ws-status');
+  if(on){el.className='ws-status on';el.textContent='BACnet/IP gateway connected';}
+  else{el.className='ws-status off';el.textContent='Reconnecting\u2026';}
+}
+
+function connectWS(){
+  if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING))return;
+  ws=new WebSocket(WS_URL);
+  ws.onopen=function(){setWsStatus(true);if(reconnectTimer){clearTimeout(reconnectTimer);reconnectTimer=null;}};
+  ws.onmessage=function(e){var msg;try{msg=JSON.parse(e.data);}catch(_){return;}
+    if(msg.type==='history'&&Array.isArray(msg.alarms)){allAlarms=msg.alarms;rebuildFeed();}
+    else if(msg.id&&msg.timestamp){prependAlarm(msg);}};
+  ws.onclose=function(){setWsStatus(false);reconnectTimer=setTimeout(connectWS,3000);};
+  ws.onerror=function(){ws.close();};
+}
+setInterval(function(){if(ws&&ws.readyState===WebSocket.OPEN)ws.send('ping');},30000);
+connectWS();
+
+document.getElementById('building-tabs').addEventListener('click',function(e){
+  var btn=e.target.closest('.b-tab');if(!btn)return;
+  document.querySelectorAll('.b-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  activeBuilding=btn.dataset.building;
+  rebuildFeed();
+});
+
+var demoDone=false;
+function fireDemo(){
+  if(demoDone)return;demoDone=true;
+  var btn=document.getElementById('fire-btn'),note=document.getElementById('demo-note');
+  btn.textContent='Firing\u2026';note.textContent='Dispatching SMS\u2026';
+  setTimeout(function(){
+    prependAlarm({id:'demo-'+Date.now(),timestamp:new Date().toISOString(),building:'Legion of Honor',device:'DEMO \u2014 DriSteem VL6',point:'Gallery Humidity',description:'Gallery SpaceRH high: 64.2%',severity:'CRITICAL',state:'ACTIVE',value:64.2,unit:'%RH'});
+  },600);
+  setTimeout(function(){
+    var t=new Date().toTimeString().slice(0,8);
+    document.getElementById('sms-body').innerHTML='[ARBITER] CRITICAL: Gallery SpaceRH 64.2% RH \u2014 limit 60%<br><br>DriSteem VL6 \u00b7 Legion of Honor BMS<br>'+t+' PST';
+    document.getElementById('sms-meta').textContent='Delivered in 0.9s';
+    btn.classList.add('fired');btn.textContent='\u2713 SMS sent';
+    note.textContent='Alert delivered to on-call engineer';
+  },1400);
+}
+
+function submitForm(){
+  var name=document.getElementById('f-name').value.trim();
+  var email=document.getElementById('f-email').value.trim();
+  if(!name||!email){
+    if(!name)document.getElementById('f-name').style.borderColor='var(--crit)';
+    if(!email)document.getElementById('f-email').style.borderColor='var(--crit)';
     return;
   }
-
-  document.getElementById('success-msg').style.display = 'block';
-  document.querySelector('.submit-btn').style.display = 'none';
+  document.getElementById('success-msg').style.display='block';
+  document.querySelector('.submit-btn').style.display='none';
 }
 </script>
 </body>
