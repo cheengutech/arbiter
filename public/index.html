@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -18,9 +18,9 @@
   --border:rgba(0,180,255,0.08);
   --border2:rgba(0,180,255,0.15);
   --border3:rgba(0,180,255,0.25);
-  --text:#d8eeff;
-  --muted:#2a4a6a;
-  --dim:#0d1e30;
+  --text:#e8f4ff;
+  --muted:#6a9abf;
+  --dim:#2a5070;
   --blue:#4a9eff;
   --blue2:#7ec8ff;
   --cyan:#00e5ff;
@@ -29,7 +29,7 @@
   --warn:#ffaa40;
   --ok:#00e5a0;
   --mono:'IBM Plex Mono',monospace;
-  --serif:'Instrument Serif',serif;
+  --serif:'Barlow Condensed',sans-serif;
   --sans:'IBM Plex Sans',sans-serif;
 }
 html{background:var(--bg);color:var(--text);font-family:var(--mono);scroll-behavior:smooth}
@@ -47,10 +47,11 @@ body{min-height:100vh;overflow-x:hidden}
   background:linear-gradient(to top,rgba(0,4,14,0.92) 0%,rgba(0,4,14,0.6) 40%,transparent 100%);
   display:flex;justify-content:space-between;align-items:flex-end;gap:40px;
 }
-.hero-headline{max-width:520px}
+.hero-headline{max-width:560px}
 .hero-headline h1{
-  font-family:var(--serif);font-size:58px;font-weight:400;
-  line-height:1.05;letter-spacing:-.01em;color:#fff;margin-bottom:14px;
+  font-family:var(--serif);font-size:76px;font-weight:800;
+  line-height:0.94;letter-spacing:-.01em;color:#fff;margin-bottom:16px;
+  text-transform:uppercase;
 }
 .hero-headline p{
   font-family:var(--sans);font-size:15px;line-height:1.75;
@@ -84,8 +85,9 @@ body{min-height:100vh;overflow-x:hidden}
 }
 .hero-headline{max-width:560px}
 .hero-headline h1{
-  font-family:var(--serif);font-size:58px;font-weight:400;
-  line-height:1.05;letter-spacing:-.01em;color:#fff;margin-bottom:14px;
+  font-family:var(--serif);font-size:76px;font-weight:800;
+  line-height:0.94;letter-spacing:-.01em;color:#fff;margin-bottom:16px;
+  text-transform:uppercase;
 }
 .hero-headline p{
   font-family:var(--sans);font-size:15px;line-height:1.75;
@@ -224,7 +226,7 @@ h1{
   border:1px solid var(--border);margin-top:28px;
 }
 .ms{padding:18px 16px;background:var(--bg)}
-.ms-num{font-family:var(--serif);font-size:30px;color:var(--text)}
+.ms-num{font-family:var(--serif);font-size:32px;font-weight:800;color:var(--text)}
 .ms-num span{font-family:var(--mono);font-size:14px;color:var(--blue)}
 .ms-lbl{font-size:9px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-top:4px}
 
@@ -254,7 +256,7 @@ h1{
   display:flex;align-items:center;gap:8px;
 }
 .sec-label::before{content:'';width:20px;height:1px;background:var(--blue);display:inline-block}
-.sec-h2{font-family:var(--serif);font-size:30px;font-weight:400;color:var(--text);margin-bottom:8px}
+.sec-h2{font-family:var(--serif);font-size:32px;font-weight:800;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:-.01em}
 .sec-sub{font-family:var(--sans);font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:28px;font-weight:300}
 
 /* building tabs */
@@ -329,7 +331,7 @@ h1{
 }
 .how-step{background:var(--bg);padding:36px 32px}
 .how-num{font-size:10px;letter-spacing:.16em;color:var(--blue);margin-bottom:14px}
-.how-title{font-family:var(--serif);font-size:18px;color:var(--text);margin-bottom:10px;line-height:1.2}
+.how-title{font-family:var(--serif);font-size:20px;font-weight:800;color:var(--text);margin-bottom:10px;line-height:1.1;text-transform:uppercase;letter-spacing:-.01em}
 .how-desc{font-family:var(--sans);font-size:12px;line-height:1.8;color:var(--muted);font-weight:300}
 
 /* SMS DEMO */
@@ -1067,6 +1069,55 @@ function fireDemo(){
     {lat:-23.550,lng:-46.633,  label:'São Paulo',              type:'datacenter', c:'#00e5a0'},
     {lat:55.751, lng:37.618,   label:'Moscow',                 type:'landmark',   c:'#7ec8ff'},
     {lat:43.651, lng:-79.347,  label:'Toronto',                type:'landmark',   c:'#7ec8ff'},
+    // Additional global locations
+    {lat:39.904, lng:116.407,  label:'Beijing',                type:'datacenter', c:'#00e5a0'},
+    {lat:31.230, lng:121.473,  label:'Shanghai',               type:'datacenter', c:'#00e5a0'},
+    {lat:22.319, lng:114.169,  label:'Hong Kong',              type:'datacenter', c:'#00e5a0'},
+    {lat:28.613, lng:77.209,   label:'New Delhi',              type:'hospital',   c:'#ff4466'},
+    {lat:19.076, lng:72.877,   label:'Mumbai',                 type:'datacenter', c:'#00e5a0'},
+    {lat:-26.204,lng:28.047,   label:'Johannesburg',           type:'datacenter', c:'#00e5a0'},
+    {lat:30.044, lng:31.235,   label:'Cairo',                  type:'landmark',   c:'#7ec8ff'},
+    {lat:59.913, lng:10.752,   label:'Oslo',                   type:'landmark',   c:'#7ec8ff'},
+    {lat:59.330, lng:18.068,   label:'Stockholm',              type:'landmark',   c:'#7ec8ff'},
+    {lat:37.983, lng:23.727,   label:'Athens',                 type:'landmark',   c:'#7ec8ff'},
+    {lat:41.015, lng:28.979,   label:'Istanbul',               type:'hospital',   c:'#ff4466'},
+    {lat:24.774, lng:46.738,   label:'Riyadh',                 type:'datacenter', c:'#00e5a0'},
+    {lat:13.756, lng:100.502,  label:'Bangkok',                type:'datacenter', c:'#00e5a0'},
+    {lat:3.139,  lng:101.686,  label:'Kuala Lumpur',           type:'datacenter', c:'#00e5a0'},
+    {lat:-6.200, lng:106.816,  label:'Jakarta',                type:'hospital',   c:'#ff4466'},
+    {lat:14.093, lng:-87.206,  label:'Tegucigalpa',            type:'hospital',   c:'#ff4466'},
+    {lat:-34.603,lng:-58.381,  label:'Buenos Aires',           type:'landmark',   c:'#7ec8ff'},
+    {lat:4.710,  lng:-74.072,  label:'Bogotá',                 type:'hospital',   c:'#ff4466'},
+    {lat:-12.046,lng:-77.042,  label:'Lima',                   type:'datacenter', c:'#00e5a0'},
+    {lat:45.421, lng:-75.690,  label:'Ottawa',                 type:'landmark',   c:'#7ec8ff'},
+    {lat:45.508, lng:-73.587,  label:'Montréal',               type:'museum',     c:'#00e5ff'},
+    {lat:49.282, lng:-123.120, label:'Vancouver',              type:'landmark',   c:'#7ec8ff'},
+    {lat:39.952, lng:-75.165,  label:'Philadelphia',           type:'hospital',   c:'#ff4466'},
+    {lat:42.360, lng:-71.058,  label:'Boston',                 type:'museum',     c:'#00e5ff'},
+    {lat:25.774, lng:-80.193,  label:'Miami',                  type:'datacenter', c:'#00e5a0'},
+    {lat:29.951, lng:-90.071,  label:'New Orleans',            type:'landmark',   c:'#7ec8ff'},
+    {lat:39.739, lng:-104.984, label:'Denver',                 type:'datacenter', c:'#00e5a0'},
+    {lat:33.448, lng:-112.073, label:'Phoenix',                type:'datacenter', c:'#00e5a0'},
+    {lat:36.169, lng:-115.139, label:'Las Vegas',              type:'datacenter', c:'#00e5a0'},
+    {lat:37.338, lng:-121.886, label:'San Jose',               type:'datacenter', c:'#00e5a0'},
+    {lat:47.608, lng:-122.335, label:'Seattle Hospital',       type:'hospital',   c:'#ff4466'},
+    {lat:53.480, lng:-2.242,   label:'Manchester',             type:'landmark',   c:'#7ec8ff'},
+    {lat:48.136, lng:11.576,   label:'Munich',                 type:'museum',     c:'#00e5ff'},
+    {lat:45.464, lng:9.189,    label:'Milan',                  type:'landmark',   c:'#7ec8ff'},
+    {lat:41.390, lng:2.154,    label:'Barcelona',              type:'landmark',   c:'#7ec8ff'},
+    {lat:40.416, lng:-3.703,   label:'Madrid',                 type:'landmark',   c:'#7ec8ff'},
+    {lat:38.717, lng:-9.142,   label:'Lisbon',                 type:'landmark',   c:'#7ec8ff'},
+    {lat:50.075, lng:14.437,   label:'Prague',                 type:'museum',     c:'#00e5ff'},
+    {lat:47.376, lng:8.541,    label:'Zürich',                 type:'datacenter', c:'#00e5a0'},
+    {lat:50.850, lng:4.351,    label:'Brussels',               type:'landmark',   c:'#7ec8ff'},
+    {lat:52.370, lng:4.895,    label:'Amsterdam',              type:'museum',     c:'#00e5ff'},
+    {lat:55.676, lng:12.568,   label:'Copenhagen',             type:'landmark',   c:'#7ec8ff'},
+    {lat:60.169, lng:24.938,   label:'Helsinki',               type:'landmark',   c:'#7ec8ff'},
+    {lat:35.228, lng:126.845,  label:'Gwangju',                type:'datacenter', c:'#00e5a0'},
+    {lat:37.566, lng:126.977,  label:'Seoul',                  type:'datacenter', c:'#00e5a0'},
+    {lat:-36.852,lng:174.763,  label:'Auckland',               type:'landmark',   c:'#7ec8ff'},
+    {lat:-37.813,lng:144.963,  label:'Melbourne',              type:'museum',     c:'#00e5ff'},
+    {lat:-27.470,lng:153.026,  label:'Brisbane',               type:'datacenter', c:'#00e5a0'},
   ];
 
   // Continent outline polylines [lat,lng] arrays
@@ -1211,7 +1262,7 @@ function fireDemo(){
       }
     });
 
-    rotAngle+=0.008;
+    rotAngle+=0.025;
     requestAnimationFrame(draw);
   }
 
