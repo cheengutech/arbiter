@@ -34,10 +34,8 @@
 html{background:var(--bg);color:var(--text);font-family:var(--mono);scroll-behavior:smooth}
 body{min-height:100vh;overflow-x:hidden}
 
-/* STARFIELD CANVAS */
-.hero-canvas-container{position:relative;overflow:hidden;background:var(--bg)}
-.hero-canvas-container canvas#starfield{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
-.hero-canvas-container>*:not(canvas){position:relative;z-index:1}
+/* HERO CANVAS */
+#hero-canvas{display:block;width:100%;height:auto;cursor:default}
 
 /* MARQUEE */
 .marquee-wrap{
@@ -357,186 +355,8 @@ footer{padding:24px 56px;display:flex;justify-content:space-between;align-items:
   </div>
 </nav>
 
-<!-- HERO SHIP ILLUSTRATION with animated starfield canvas behind -->
-<div class="hero-canvas-container">
-<canvas id="starfield"></canvas>
-<svg class="hero-ship" viewBox="0 0 1200 520" xmlns="http://www.w3.org/2000/svg">
-<defs>
-  <radialGradient id="planetGlow" cx="50%" cy="100%" r="70%">
-    <stop offset="0%"   stop-color="#00c8ff" stop-opacity="0.55"/>
-    <stop offset="35%"  stop-color="#0066cc" stop-opacity="0.25"/>
-    <stop offset="70%"  stop-color="#001a3d" stop-opacity="0.12"/>
-    <stop offset="100%" stop-color="#010409" stop-opacity="0"/>
-  </radialGradient>
-  <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
-    <stop offset="0%"   stop-color="#80e8ff" stop-opacity="0.9"/>
-    <stop offset="40%"  stop-color="#4ab0ff" stop-opacity="0.5"/>
-    <stop offset="100%" stop-color="#4ab0ff" stop-opacity="0"/>
-  </radialGradient>
-  <radialGradient id="shipLight" cx="50%" cy="80%" r="60%">
-    <stop offset="0%"   stop-color="#00aaff" stop-opacity="0.28"/>
-    <stop offset="100%" stop-color="#00aaff" stop-opacity="0"/>
-  </radialGradient>
-  <linearGradient id="hullDark" x1="0%" y1="0%" x2="0%" y2="100%">
-    <stop offset="0%"   stop-color="#0e1c30"/>
-    <stop offset="100%" stop-color="#040a16"/>
-  </linearGradient>
-  <linearGradient id="wingDark" x1="0%" y1="0%" x2="100%" y2="60%">
-    <stop offset="0%"   stop-color="#0a1626"/>
-    <stop offset="100%" stop-color="#020609"/>
-  </linearGradient>
-  <linearGradient id="beamFade" x1="0%" y1="0%" x2="0%" y2="100%">
-    <stop offset="0%"   stop-color="#00d4ff" stop-opacity="0.5"/>
-    <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
-  </linearGradient>
-  <linearGradient id="planetEdge" x1="0%" y1="0%" x2="0%" y2="100%">
-    <stop offset="0%"   stop-color="#00e5ff"/>
-    <stop offset="100%" stop-color="#0044aa"/>
-  </linearGradient>
-  <linearGradient id="accentHull" x1="0%" y1="0%" x2="100%" y2="0%">
-    <stop offset="0%"   stop-color="#0d2550"/>
-    <stop offset="100%" stop-color="#1a3a6e"/>
-  </linearGradient>
-  <clipPath id="heroClip"><rect width="1200" height="520"/></clipPath>
-</defs>
-<g clip-path="url(#heroClip)">
-
-<!-- BACKGROUND -->
-<rect width="1200" height="520" fill="#010409"/>
-
-<!-- STARS -->
-<circle cx="80"   cy="40"  r="0.8" fill="#fff" opacity="0.65"/>
-<circle cx="195"  cy="88"  r="0.5" fill="#fff" opacity="0.45"/>
-<circle cx="315"  cy="28"  r="1"   fill="#fff" opacity="0.7"/>
-<circle cx="445"  cy="68"  r="0.6" fill="#fff" opacity="0.5"/>
-<circle cx="525"  cy="18"  r="0.8" fill="#fff" opacity="0.6"/>
-<circle cx="685"  cy="52"  r="0.5" fill="#fff" opacity="0.4"/>
-<circle cx="755"  cy="14"  r="1"   fill="#fff" opacity="0.7"/>
-<circle cx="862"  cy="78"  r="0.7" fill="#fff" opacity="0.5"/>
-<circle cx="952"  cy="32"  r="0.9" fill="#fff" opacity="0.6"/>
-<circle cx="1055" cy="58"  r="0.5" fill="#fff" opacity="0.4"/>
-<circle cx="1125" cy="22"  r="0.8" fill="#fff" opacity="0.6"/>
-<circle cx="152"  cy="178" r="0.5" fill="#fff" opacity="0.3"/>
-<circle cx="332"  cy="148" r="0.5" fill="#fff" opacity="0.4"/>
-<circle cx="902"  cy="138" r="0.6" fill="#fff" opacity="0.35"/>
-<circle cx="1082" cy="168" r="0.5" fill="#fff" opacity="0.3"/>
-<circle cx="58"   cy="295" r="0.5" fill="#fff" opacity="0.25"/>
-<circle cx="1102" cy="275" r="0.5" fill="#fff" opacity="0.25"/>
-<circle cx="420"  cy="110" r="0.4" fill="#7ec8ff" opacity="0.5"/>
-<circle cx="780"  cy="95"  r="0.4" fill="#7ec8ff" opacity="0.5"/>
-
-<!-- PLANET -->
-<ellipse cx="600" cy="820" rx="680" ry="660" fill="#020d1e"/>
-<ellipse cx="600" cy="820" rx="680" ry="660" fill="none" stroke="url(#planetEdge)" stroke-width="2.5" opacity="0.7"/>
-<ellipse cx="600" cy="820" rx="690" ry="670" fill="none" stroke="#00aaff" stroke-width="6" opacity="0.1"/>
-<ellipse cx="600" cy="820" rx="700" ry="680" fill="none" stroke="#00d4ff" stroke-width="3" opacity="0.06"/>
-<ellipse cx="600" cy="820" rx="680" ry="660" fill="url(#planetGlow)"/>
-<!-- atmosphere bloom upward -->
-<rect x="0" y="280" width="1200" height="240" fill="url(#planetGlow)" opacity="0.9"/>
-
-<!-- PSI BEAMS — wide, sweeping, theatrical -->
-<polygon points="548,248 492,234 80,520  230,520"  fill="url(#beamFade)" opacity="0.16"/>
-<polygon points="562,252 526,240 280,520 415,520"  fill="url(#beamFade)" opacity="0.2"/>
-<polygon points="638,252 674,240 785,520 920,520"  fill="url(#beamFade)" opacity="0.2"/>
-<polygon points="652,248 708,234 970,520 1120,520" fill="url(#beamFade)" opacity="0.16"/>
-<polygon points="588,256 612,256 648,520 552,520"  fill="url(#beamFade)" opacity="0.26"/>
-<!-- beam edge lines -->
-<line x1="548" y1="248" x2="80"   y2="520" stroke="#00e5ff" stroke-width="0.6" opacity="0.3"/>
-<line x1="562" y1="252" x2="280"  y2="520" stroke="#00e5ff" stroke-width="0.8" opacity="0.38"/>
-<line x1="638" y1="252" x2="920"  y2="520" stroke="#00e5ff" stroke-width="0.8" opacity="0.38"/>
-<line x1="652" y1="248" x2="1120" y2="520" stroke="#00e5ff" stroke-width="0.6" opacity="0.3"/>
-
-<!-- SHIP centered at 600, 245 -->
-<g transform="translate(600, 245)">
-  <!-- underlight from planet -->
-  <ellipse cx="0" cy="18" rx="130" ry="44" fill="url(#shipLight)"/>
-
-  <!-- LEFT WING -->
-  <polygon points="-16,-13 -268,-54 -292,-28 -250,16 -16,8" fill="url(#wingDark)" stroke="#0a1e38" stroke-width="0.8"/>
-  <polygon points="-16,-10 -205,-43 -215,-21 -178,6 -16,4"  fill="#060e1c" stroke="#0d1e36" stroke-width="0.5"/>
-  <polygon points="-252,-50 -288,-30 -268,-14 -233,-25" fill="url(#accentHull)" stroke="#0d2244" stroke-width="0.7"/>
-  <line x1="-16" y1="-11" x2="-270" y2="-52" stroke="#00c8ff" stroke-width="1.3" opacity="0.5"/>
-  <line x1="-16" y1="-11" x2="-270" y2="-52" stroke="#9a7a28" stroke-width="0.7" opacity="0.35"/>
-  <line x1="-32" y1="3"   x2="-175" y2="-12" stroke="#081628" stroke-width="0.5"/>
-  <line x1="-52" y1="1"   x2="-155" y2="-16" stroke="#081628" stroke-width="0.4"/>
-
-  <!-- RIGHT WING -->
-  <polygon points="16,-13  268,-54  292,-28  250,16  16,8"  fill="url(#wingDark)" stroke="#0a1e38" stroke-width="0.8"/>
-  <polygon points="16,-10  205,-43  215,-21  178,6   16,4"  fill="#060e1c" stroke="#0d1e36" stroke-width="0.5"/>
-  <polygon points="252,-50 288,-30  268,-14  233,-25" fill="url(#accentHull)" stroke="#0d2244" stroke-width="0.7"/>
-  <line x1="16" y1="-11" x2="270" y2="-52" stroke="#00c8ff" stroke-width="1.3" opacity="0.5"/>
-  <line x1="16" y1="-11" x2="270" y2="-52" stroke="#9a7a28" stroke-width="0.7" opacity="0.35"/>
-  <line x1="32" y1="3"   x2="175" y2="-12" stroke="#081628" stroke-width="0.5"/>
-  <line x1="52" y1="1"   x2="155" y2="-16" stroke="#081628" stroke-width="0.4"/>
-
-  <!-- TAIL FINS -->
-  <polygon points="-13,9 -72,74 -50,80 -9,22"  fill="#040c18" stroke="#081628" stroke-width="0.7"/>
-  <polygon points="13,9   72,74  50,80  9,22"   fill="#040c18" stroke="#081628" stroke-width="0.7"/>
-  <line x1="-13" y1="11" x2="-70" y2="72" stroke="#00aaff" stroke-width="0.7" opacity="0.28"/>
-  <line x1="13"  y1="11" x2="70"  y2="72" stroke="#00aaff" stroke-width="0.7" opacity="0.28"/>
-
-  <!-- MAIN HULL -->
-  <polygon points="0,-38 -27,-16 -23,27 0,37 23,27 27,-16" fill="url(#hullDark)" stroke="#0d2244" stroke-width="1"/>
-  <line x1="-25" y1="-4" x2="25" y2="-4"  stroke="#0d2244" stroke-width="0.6"/>
-  <line x1="-23" y1="11" x2="23" y2="11"  stroke="#0d2244" stroke-width="0.5"/>
-  <line x1="-27" y1="-16" x2="-23" y2="27" stroke="#00aaff" stroke-width="0.9" opacity="0.32"/>
-  <line x1="27"  y1="-16" x2="23"  y2="27" stroke="#00aaff" stroke-width="0.9" opacity="0.32"/>
-  <line x1="-13" y1="-33" x2="13" y2="-33" stroke="#9a7a28" stroke-width="0.8" opacity="0.55"/>
-
-  <!-- NOSE -->
-  <polygon points="0,-38 -13,-19 13,-19" fill="#0d1e38" stroke="#0d2244" stroke-width="0.8"/>
-  <circle cx="0" cy="-31" r="2" fill="#00aaff" opacity="0.85"/>
-
-  <!-- CORE -->
-  <circle cx="0" cy="-2" r="24" fill="url(#coreGlow)" opacity="0.25"/>
-  <circle cx="0" cy="-2" r="16" fill="none" stroke="#0d2a50" stroke-width="1.5"/>
-  <line x1="0" y1="-18" x2="0" y2="-14"  stroke="#00c8ff" stroke-width="1.1" opacity="0.75"/>
-  <line x1="0" y1="14"  x2="0" y2="10"   stroke="#00c8ff" stroke-width="1.1" opacity="0.75"/>
-  <line x1="-18" y1="-2" x2="-14" y2="-2" stroke="#00c8ff" stroke-width="1.1" opacity="0.75"/>
-  <line x1="18"  y1="-2" x2="14"  y2="-2" stroke="#00c8ff" stroke-width="1.1" opacity="0.75"/>
-  <circle cx="0" cy="-2" r="11" fill="#03091a"/>
-  <circle cx="0" cy="-2" r="7"  fill="#1a6aaa"/>
-  <circle cx="0" cy="-2" r="5"  fill="#40a8e0"/>
-  <circle cx="-2" cy="-4" r="3" fill="#90d8ff" opacity="0.75"/>
-  <circle cx="0"  cy="-2" r="1.5" fill="#ffffff"/>
-  <line x1="-7"  y1="-2" x2="-23" y2="-2"  stroke="#00c8ff" stroke-width="0.8" opacity="0.5"/>
-  <line x1="7"   y1="-2" x2="23"  y2="-2"  stroke="#00c8ff" stroke-width="0.8" opacity="0.5"/>
-  <line x1="0"   y1="-9" x2="0"   y2="-25" stroke="#00c8ff" stroke-width="0.8" opacity="0.45"/>
-
-  <!-- PYLONS -->
-  <circle cx="-40" cy="-5" r="5.5" fill="#040c18" stroke="#0d2244" stroke-width="1"/>
-  <circle cx="-40" cy="-5" r="2.8" fill="#00aaff" opacity="0.9"/>
-  <circle cx="40"  cy="-5" r="5.5" fill="#040c18" stroke="#0d2244" stroke-width="1"/>
-  <circle cx="40"  cy="-5" r="2.8" fill="#00aaff" opacity="0.9"/>
-
-  <!-- EXHAUST -->
-  <rect x="-8" y="27" width="5" height="8" rx="1" fill="#030810" stroke="#0d2244" stroke-width="0.5"/>
-  <rect x="3"  y="27" width="5" height="8" rx="1" fill="#030810" stroke="#0d2244" stroke-width="0.5"/>
-  <rect x="-2" y="28" width="5" height="6" rx="1" fill="#0d2244" stroke="#00aaff" stroke-width="0.6" opacity="0.7"/>
-
-  <!-- WING TIP NODES -->
-  <circle cx="-282" cy="-26" r="3.5" fill="#040c18" stroke="#00aaff" stroke-width="0.8"/>
-  <circle cx="-282" cy="-26" r="1.8" fill="#00e5ff" opacity="1"/>
-  <circle cx="282"  cy="-26" r="3.5" fill="#040c18" stroke="#00aaff" stroke-width="0.8"/>
-  <circle cx="282"  cy="-26" r="1.8" fill="#00e5ff" opacity="1"/>
-</g>
-
-<!-- DISTANT FLEET -->
-<g opacity="0.38">
-  <polygon points="88,182  73,192  93,197  108,190"  fill="#0a1e38"/>
-  <polygon points="96,187  83,195  98,199"            fill="#061428"/>
-  <polygon points="142,162 127,172 147,177 162,169"  fill="#0a1e38"/>
-  <polygon points="112,200 100,208 118,212"           fill="#061428"/>
-</g>
-<g opacity="0.33">
-  <polygon points="1052,197 1037,207 1057,212 1072,204" fill="#0a1e38"/>
-  <polygon points="1060,202 1047,210 1062,214"           fill="#061428"/>
-  <polygon points="1102,177 1087,187 1107,192 1122,184"  fill="#0a1e38"/>
-</g>
-
-</g>
-</svg>
-</div><!-- /hero-canvas-container -->
+<!-- HERO — animated canvas -->
+<canvas id="hero-canvas" style="display:block;width:100%;height:auto;background:#00040e"></canvas>
 
 <!-- HERO COPY -->
 <div class="hero-copy">
@@ -824,49 +644,165 @@ function fireDemo(){
   },1400);
 }
 
-// ── STARFIELD CANVAS ──
+// ── CINEMATIC HERO CANVAS ──
 (function(){
-  var c=document.getElementById('starfield');
+  var c=document.getElementById('hero-canvas');
   if(!c)return;
   var ctx=c.getContext('2d');
-  var stars=[];
+  var t=0;
   function resize(){
     c.width=c.offsetWidth||1200;
-    c.height=c.offsetHeight||520;
-    stars=[];
-    for(var i=0;i<200;i++){
-      stars.push({
-        x:Math.random()*c.width,y:Math.random()*c.height,
-        r:Math.random()*1.1+0.2,
-        vx:(Math.random()-.5)*.1,vy:(Math.random()-.5)*.05,
-        a:Math.random()*.75+.2,blue:Math.random()<.18
-      });
-    }
+    c.height=Math.round(c.width*0.42);
+    c.style.height=c.height+'px';
   }
   resize();
-  window.addEventListener('resize',function(){setTimeout(resize,100);});
-  function draw(){
+  window.addEventListener('resize',function(){setTimeout(resize,80);});
+
+  function drawScene(){
     var W=c.width,H=c.height;
     ctx.clearRect(0,0,W,H);
-    // planet atmosphere glow from bottom
-    var grad=ctx.createRadialGradient(W/2,H+80,30,W/2,H+80,H*1.1);
-    grad.addColorStop(0,'rgba(0,160,255,0.22)');
-    grad.addColorStop(.4,'rgba(0,60,140,0.08)');
-    grad.addColorStop(1,'transparent');
-    ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
-    // stars
-    for(var i=0;i<stars.length;i++){
-      var s=stars[i];
-      s.x+=s.vx;s.y+=s.vy;
-      if(s.x<0)s.x=W;if(s.x>W)s.x=0;
-      if(s.y<0)s.y=H;if(s.y>H)s.y=0;
-      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=s.blue?'rgba(126,200,255,'+s.a+')':'rgba(216,230,255,'+s.a+')';
+    var cx=W/2;
+    var shipY=H*0.34+Math.sin(t*0.4)*3;
+    var shipX=cx+Math.sin(t*0.18)*4;
+
+    ctx.fillStyle='#00040e';ctx.fillRect(0,0,W,H);
+
+    // stars — deterministic seed so no flicker on resize
+    var seed=42;
+    for(var i=0;i<180;i++){
+      seed=(seed*16807)%2147483647;var sx=seed%W;
+      seed=(seed*16807)%2147483647;var sy=seed%(H*0.72);
+      seed=(seed*16807)%2147483647;var sa=((seed%75)+20)/100;
+      seed=(seed*16807)%2147483647;var sr=((seed%11)+3)/10;
+      var tw=0.65+0.35*Math.sin(t*0.8+i*0.7);
+      ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);
+      ctx.fillStyle=i%7===0?'rgba(180,220,255,'+(sa*tw)+')':'rgba(210,228,255,'+(sa*tw)+')';
       ctx.fill();
     }
-    requestAnimationFrame(draw);
+
+    // planet arc
+    var pr=W*0.74,pcy=H+pr*0.26,pcx=cx;
+    var breathe=0.85+0.15*Math.sin(t*0.3);
+    var pg=ctx.createRadialGradient(pcx,pcy-pr*0.05,pr*0.08,pcx,pcy,pr);
+    pg.addColorStop(0,'#041228');pg.addColorStop(0.65,'#020a18');pg.addColorStop(1,'#010408');
+    ctx.beginPath();ctx.arc(pcx,pcy,pr,0,Math.PI*2);ctx.fillStyle=pg;ctx.fill();
+    ctx.beginPath();ctx.arc(pcx,pcy,pr+W*0.022,0,Math.PI*2);
+    ctx.strokeStyle='rgba(0,150,255,'+(0.22*breathe)+')';ctx.lineWidth=W*0.016;ctx.stroke();
+    ctx.beginPath();ctx.arc(pcx,pcy,pr,0,Math.PI*2);
+    ctx.strokeStyle='rgba(0,210,255,'+(0.5*breathe)+')';ctx.lineWidth=W*0.0025;ctx.stroke();
+    var rg=ctx.createRadialGradient(pcx,pcy,pr*0.97,pcx,pcy,pr*1.05);
+    rg.addColorStop(0,'rgba(0,130,255,0)');rg.addColorStop(0.5,'rgba(0,170,255,0.1)');rg.addColorStop(1,'rgba(0,170,255,0)');
+    ctx.beginPath();ctx.arc(pcx,pcy,pr*1.05,0,Math.PI*2);ctx.fillStyle=rg;ctx.fill();
+
+    // psi beams
+    [{f:-0.46,w:0.0022},{f:-0.28,w:0.0028},{f:-0.12,w:0.004},{f:0,w:0.0055},{f:0.12,w:0.004},{f:0.28,w:0.0028},{f:0.46,w:0.0022}].forEach(function(b,i){
+      var bx=cx+b.f*W;
+      var pulse=0.65+0.35*Math.sin(t*0.55+i*0.6);
+      var alpha=Math.max(0,(1-Math.abs(b.f)*2.0))*0.28*pulse;
+      if(alpha<=0)return;
+      var bg=ctx.createLinearGradient(shipX,shipY,bx,H*0.94);
+      bg.addColorStop(0,'rgba(0,190,255,'+alpha+')');
+      bg.addColorStop(0.65,'rgba(0,150,255,'+(alpha*0.45)+')');
+      bg.addColorStop(1,'rgba(0,90,180,0)');
+      ctx.beginPath();ctx.moveTo(shipX,shipY+6);ctx.lineTo(bx,H*0.94);
+      ctx.strokeStyle=bg;ctx.lineWidth=W*b.w;ctx.stroke();
+    });
+    var fg=ctx.createRadialGradient(cx,H*0.84,0,cx,H*0.84,W*0.38);
+    fg.addColorStop(0,'rgba(0,150,255,0.13)');fg.addColorStop(1,'rgba(0,80,180,0)');
+    ctx.fillStyle=fg;ctx.fillRect(0,H*0.55,W,H*0.45);
+
+    // distant fleet
+    function fleet(x,y,sz,dir){
+      ctx.save();ctx.translate(x,y);ctx.scale(1,0.36);
+      ctx.beginPath();
+      ctx.moveTo(0,-sz*0.14);ctx.lineTo(-sz*0.48*dir,-sz*0.07);ctx.lineTo(-sz*0.50*dir,sz*0.07);
+      ctx.lineTo(0,sz*0.16);ctx.lineTo(sz*0.50*dir,sz*0.07);ctx.lineTo(sz*0.48*dir,-sz*0.07);
+      ctx.closePath();ctx.fillStyle='rgba(18,45,100,0.65)';ctx.fill();ctx.restore();
+    }
+    fleet(cx-W*0.385+Math.sin(t*0.14)*7,H*0.24+Math.cos(t*0.10)*2.5,W*0.046,1);
+    fleet(cx-W*0.455+Math.sin(t*0.11)*5,H*0.21+Math.cos(t*0.13)*2,W*0.031,1);
+    fleet(cx+W*0.385+Math.sin(t*0.13)*6,H*0.24+Math.cos(t*0.11)*2.5,W*0.046,-1);
+    fleet(cx+W*0.455+Math.sin(t*0.15)*5,H*0.21+Math.cos(t*0.12)*2,W*0.031,-1);
+
+    // main ship
+    drawArbiter(shipX,shipY,W*0.23);
+    t+=0.016;
+    requestAnimationFrame(drawScene);
   }
-  draw();
+
+  function drawArbiter(cx,cy,size){
+    var s=size;
+    ctx.save();ctx.translate(cx,cy);
+    // wing shadow
+    ctx.save();ctx.translate(0,s*0.055);ctx.scale(1,0.22);
+    ctx.beginPath();ctx.ellipse(0,0,s*0.85,s*0.28,0,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,70,200,0.1)';ctx.fill();ctx.restore();
+    // left wing
+    function wing(dir){
+      ctx.beginPath();
+      ctx.moveTo(-s*0.055*dir,-s*0.055);ctx.lineTo(-s*0.84*dir,-s*0.21);ctx.lineTo(-s*0.90*dir,-s*0.09);ctx.lineTo(-s*0.76*dir,s*0.055);ctx.lineTo(-s*0.055*dir,s*0.038);
+      ctx.closePath();
+      var wg=ctx.createLinearGradient(-s*0.9*dir,0,0,0);wg.addColorStop(0,'#060e1e');wg.addColorStop(1,'#0d1e38');
+      ctx.fillStyle=wg;ctx.fill();ctx.strokeStyle='rgba(0,150,255,0.14)';ctx.lineWidth=0.8;ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-s*0.07*dir,-s*0.046);ctx.lineTo(-s*0.66*dir,-s*0.17);ctx.lineTo(-s*0.69*dir,-s*0.078);ctx.lineTo(-s*0.59*dir,s*0.036);ctx.lineTo(-s*0.07*dir,s*0.028);
+      ctx.closePath();ctx.fillStyle='#08111e';ctx.fill();
+      ctx.beginPath();ctx.moveTo(-s*0.063*dir,-s*0.051);ctx.lineTo(-s*0.855*dir,-s*0.20);
+      ctx.strokeStyle='rgba(0,195,255,0.42)';ctx.lineWidth=1.2;ctx.stroke();
+      ctx.beginPath();ctx.arc(-s*0.885*dir,-s*0.095,s*0.017,0,Math.PI*2);
+      ctx.fillStyle='#040c18';ctx.fill();ctx.strokeStyle='rgba(0,195,255,0.65)';ctx.lineWidth=0.9;ctx.stroke();
+      ctx.beginPath();ctx.arc(-s*0.885*dir,-s*0.095,s*0.009,0,Math.PI*2);ctx.fillStyle='#00e5ff';ctx.fill();
+    }
+    wing(1);wing(-1);
+    // tail fins
+    [-1,1].forEach(function(d){
+      ctx.beginPath();ctx.moveTo(s*0.038*d,s*0.038);ctx.lineTo(s*0.21*d,s*0.27);ctx.lineTo(s*0.135*d,s*0.29);ctx.lineTo(s*0.028*d,s*0.076);ctx.closePath();
+      ctx.fillStyle='#050c1a';ctx.fill();ctx.strokeStyle='rgba(0,130,255,0.18)';ctx.lineWidth=0.7;ctx.stroke();
+    });
+    // hull
+    ctx.beginPath();
+    ctx.moveTo(0,-s*0.135);ctx.lineTo(-s*0.088,-s*0.058);ctx.lineTo(-s*0.078,s*0.098);ctx.lineTo(0,s*0.135);ctx.lineTo(s*0.078,s*0.098);ctx.lineTo(s*0.088,-s*0.058);
+    ctx.closePath();
+    var hg=ctx.createLinearGradient(0,-s*0.135,0,s*0.135);hg.addColorStop(0,'#0c1e38');hg.addColorStop(1,'#040a16');
+    ctx.fillStyle=hg;ctx.fill();ctx.strokeStyle='rgba(0,155,255,0.28)';ctx.lineWidth=0.8;ctx.stroke();
+    [-s*0.088,s*0.088].forEach(function(px,i){
+      ctx.beginPath();ctx.moveTo(px,-s*0.058);ctx.lineTo(px*(s*0.078/s*0.088),s*0.098);
+      ctx.strokeStyle='rgba(0,175,255,0.28)';ctx.lineWidth=0.8;ctx.stroke();
+    });
+    ctx.beginPath();ctx.moveTo(-s*0.048,-s*0.116);ctx.lineTo(s*0.048,-s*0.116);ctx.strokeStyle='rgba(155,125,45,0.45)';ctx.lineWidth=0.75;ctx.stroke();
+    // nose
+    ctx.beginPath();ctx.moveTo(0,-s*0.135);ctx.lineTo(-s*0.038,-s*0.058);ctx.lineTo(s*0.038,-s*0.058);ctx.closePath();
+    ctx.fillStyle='#0d1e38';ctx.fill();
+    ctx.beginPath();ctx.arc(0,-s*0.098,s*0.008,0,Math.PI*2);ctx.fillStyle='rgba(0,175,255,0.8)';ctx.fill();
+    // pylons
+    [-s*0.125,s*0.125].forEach(function(px){
+      ctx.beginPath();ctx.arc(px,-s*0.017,s*0.018,0,Math.PI*2);
+      ctx.fillStyle='#040c18';ctx.fill();ctx.strokeStyle='rgba(0,155,255,0.48)';ctx.lineWidth=0.8;ctx.stroke();
+      ctx.beginPath();ctx.arc(px,-s*0.017,s*0.009,0,Math.PI*2);ctx.fillStyle='rgba(0,175,255,0.88)';ctx.fill();
+    });
+    // core
+    var cp=0.78+0.22*Math.sin(t*2.2);
+    var cg=ctx.createRadialGradient(0,-s*0.01,0,0,-s*0.01,s*0.088);
+    cg.addColorStop(0,'rgba(90,205,255,'+(0.22*cp)+')');cg.addColorStop(1,'rgba(0,90,200,0)');
+    ctx.beginPath();ctx.arc(0,-s*0.01,s*0.088,0,Math.PI*2);ctx.fillStyle=cg;ctx.fill();
+    ctx.beginPath();ctx.arc(0,-s*0.01,s*0.052,0,Math.PI*2);ctx.strokeStyle='rgba(0,135,215,0.48)';ctx.lineWidth=0.75;ctx.stroke();
+    [0,Math.PI/2,Math.PI,Math.PI*1.5].forEach(function(a){
+      ctx.beginPath();ctx.moveTo(Math.sin(a)*s*0.052,-s*0.01+Math.cos(a)*s*0.052);ctx.lineTo(Math.sin(a)*s*0.04,-s*0.01+Math.cos(a)*s*0.04);
+      ctx.strokeStyle='rgba(0,195,255,0.55)';ctx.lineWidth=0.75;ctx.stroke();
+    });
+    ctx.beginPath();ctx.arc(0,-s*0.01,s*0.04,0,Math.PI*2);ctx.fillStyle='#03091a';ctx.fill();
+    ctx.beginPath();ctx.arc(0,-s*0.01,s*0.027,0,Math.PI*2);ctx.fillStyle='#1a6aaa';ctx.fill();
+    ctx.beginPath();ctx.arc(0,-s*0.01,s*0.019,0,Math.PI*2);ctx.fillStyle='#40a8e0';ctx.fill();
+    ctx.beginPath();ctx.arc(-s*0.007,-s*0.022,s*0.011,0,Math.PI*2);ctx.fillStyle='rgba(155,225,255,'+(0.68*cp)+')';ctx.fill();
+    ctx.beginPath();ctx.arc(0,-s*0.01,s*0.006,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();
+    [[-1,0],[1,0],[0,-1]].forEach(function(d){
+      ctx.beginPath();ctx.moveTo(d[0]*s*0.027,-s*0.01+d[1]*s*0.027);ctx.lineTo(d[0]*s*0.076,-s*0.01+d[1]*s*0.076);
+      ctx.strokeStyle='rgba(0,195,255,0.38)';ctx.lineWidth=0.65;ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  drawScene();
 })();
 
 // ── MARQUEE ──
