@@ -1,909 +1,688 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Arbiter — Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#010409;--bg2:#04080f;--bg3:#060c18;
+  --border:rgba(0,180,255,0.08);--border2:rgba(0,180,255,0.15);
+  --text:#e8f4ff;--muted:#6a9abf;--dim:#2a5070;
+  --blue:#4a9eff;--blue2:#7ec8ff;--cyan:#00e5ff;
+  --crit:#ff4466;--warn:#ffaa40;--ok:#00e5a0;
+  --mono:'IBM Plex Mono',monospace;--serif:'Barlow Condensed',sans-serif;--sans:'IBM Plex Sans',sans-serif;
+  --zone-ok:rgba(0,100,60,0.35);--zone-warn:rgba(120,80,0,0.45);--zone-crit:rgba(120,20,30,0.5);--zone-dim:rgba(0,30,60,0.3);
+}
+html,body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow-x:hidden}
 
-  :root {
-    --bg: #010409;
-    --surface: #04080f;
-    --surface2: #060c18;
-    --border: rgba(0,180,255,0.08);
-    --border2: rgba(0,180,255,0.15);
-    --text: #e8eaf0;
-    --muted: #2a4a6a;
-    --accent: #4a9eff;
-    --critical: #ff4466;
-    --warning: #ffaa40;
-    --ok: #00e5a0;
-    --mono: 'IBM Plex Mono', monospace;
-    --sans: 'IBM Plex Sans', sans-serif;
-  }
+/* NAV */
+nav{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 40px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;
+  background:rgba(1,4,9,0.96);backdrop-filter:blur(8px);
+}
+.nav-logo{font-size:22px;font-weight:500;letter-spacing:.14em;color:var(--blue2)}
+.nav-logo span{color:var(--dim)}
+.nav-center{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.1em;color:var(--dim)}
+.nav-sep{color:var(--dim);opacity:.4}
+.nav-r{display:flex;align-items:center;gap:20px}
+.live-dot-wrap{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.1em;color:var(--ok)}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--ok);animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.nav-time{font-size:11px;color:var(--dim)}
+.nav-link{font-size:10px;letter-spacing:.1em;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color .15s}
+.nav-link:hover{color:var(--text)}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-weight: 300;
-    line-height: 1.6;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+/* STATUS BAR */
+.status-bar{
+  display:flex;border-bottom:1px solid var(--border);
+  overflow-x:auto;scrollbar-width:none;background:var(--bg2);
+}
+.status-bar::-webkit-scrollbar{display:none}
+.sb-cell{
+  flex:1;min-width:140px;padding:10px 20px;
+  border-right:1px solid var(--border);
+}
+.sb-cell:last-child{border-right:none}
+.sb-label{font-size:9px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-bottom:4px}
+.sb-val{font-size:15px;font-weight:500;color:var(--text)}
+.sb-val.ok{color:var(--ok)}.sb-val.warn{color:var(--warn)}.sb-val.crit{color:var(--crit)}
 
-  /* NAV */
-  nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 32px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
+/* BUILDING TABS */
+.bldg-tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.bldg-tabs::-webkit-scrollbar{display:none}
+.bldg-tab{
+  font-size:10px;letter-spacing:.1em;color:var(--muted);
+  padding:12px 28px;cursor:pointer;white-space:nowrap;
+  text-transform:uppercase;border-bottom:2px solid transparent;
+  transition:all .2s;user-select:none;
+}
+.bldg-tab:hover{color:var(--text);background:var(--bg2)}
+.bldg-tab.active{color:var(--blue);border-bottom-color:var(--blue);background:var(--bg2)}
 
-  .nav-left {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-  }
+/* MAIN LAYOUT */
+.main{display:grid;grid-template-columns:1fr 280px;height:calc(100vh - 130px);overflow:hidden}
 
-  .logo {
-    font-family: var(--mono);
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-    text-decoration: none;
-  }
+/* FLOOR PLAN PANEL */
+.fp-panel{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border)}
+.fp-header{
+  padding:10px 20px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--bg2);flex-shrink:0;
+}
+.fp-title{font-size:10px;letter-spacing:.12em;color:var(--blue);text-transform:uppercase}
+.fp-subtitle{font-size:9px;letter-spacing:.08em;color:var(--dim)}
+.fp-wrap{flex:1;overflow:auto;padding:16px;display:flex;align-items:center;justify-content:center}
 
-  .logo span { color: var(--muted); font-weight: 400; }
+/* SVG zone styles */
+.fp-svg{max-width:100%;max-height:100%}
+.zone-room{cursor:pointer;transition:all .2s}
+.zone-room:hover .zone-bg{filter:brightness(1.3)}
+.zone-bg{fill:var(--zone-ok);stroke:rgba(0,180,255,0.2);stroke-width:1;rx:2}
+.zone-bg.warn{fill:var(--zone-warn);stroke:rgba(255,170,64,0.3)}
+.zone-bg.crit{fill:var(--zone-crit);stroke:rgba(255,68,102,0.4)}
+.zone-bg.dim{fill:var(--zone-dim);stroke:rgba(0,100,180,0.15)}
+.zone-label{font-family:'IBM Plex Mono',monospace;font-size:8px;fill:rgba(180,220,255,0.5);letter-spacing:.08em}
+.zone-value{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;fill:rgba(220,240,255,0.9)}
+.zone-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;fill:rgba(100,160,220,0.6)}
+.zone-icon{font-family:'IBM Plex Mono',monospace;font-size:9px;fill:rgba(100,160,220,0.5)}
+.struct-fill{fill:rgba(0,20,50,0.4);stroke:rgba(0,80,140,0.15);stroke-width:0.5}
+.corridor-fill{fill:rgba(0,15,35,0.3);stroke:rgba(0,60,120,0.1);stroke-width:0.5}
+.struct-label{font-family:'IBM Plex Mono',monospace;font-size:7px;fill:rgba(60,120,180,0.35);letter-spacing:.1em}
 
-  .nav-site {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+/* ALARM SIDEBAR */
+.alarm-sidebar{display:flex;flex-direction:column;overflow:hidden}
+.alarm-header{
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  background:var(--bg2);flex-shrink:0;
+}
+.alarm-title{font-size:10px;letter-spacing:.12em;color:var(--blue);text-transform:uppercase}
+.alarm-summary{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.sum-cell{padding:12px 8px;text-align:center;border-right:1px solid var(--border)}
+.sum-cell:last-child{border-right:none}
+.sum-num{font-size:22px;font-family:var(--serif);font-weight:800;line-height:1}
+.sum-num.crit{color:var(--crit)}.sum-num.warn{color:var(--warn)}.sum-num.clr{color:var(--ok)}
+.sum-lbl{font-size:8px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;margin-top:3px}
+.alarm-list{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.alarm-item{
+  padding:10px 14px;border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .15s;
+}
+.alarm-item:hover{background:var(--bg2)}
+.alarm-item.crit{border-left:2px solid var(--crit)}
+.alarm-item.warn{border-left:2px solid var(--warn)}
+.alarm-item.clr{border-left:2px solid var(--ok)}
+.ai-zone{font-size:9px;letter-spacing:.08em;color:var(--blue);text-transform:uppercase;margin-bottom:3px}
+.ai-desc{font-size:11px;color:var(--text);margin-bottom:2px}
+.ai-val{font-size:10px;color:var(--muted)}
+.ai-time{font-size:9px;color:var(--dim);margin-top:3px}
+.alarm-empty{padding:24px 14px;font-size:11px;color:var(--dim);text-align:center}
 
-  .nav-site::before {
-    content: '/';
-    color: var(--border2);
-  }
-
-  .nav-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .live-indicator {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--ok);
-    letter-spacing: 0.08em;
-  }
-
-  .live-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--ok);
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
-  .nav-time {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  /* STATUS BAR */
-  .status-bar {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-
-  .status-cell {
-    padding: 12px 20px;
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-
-  .status-cell:last-child { border-right: none; }
-
-  .status-label {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.14em;
-    color: var(--muted);
-    text-transform: uppercase;
-  }
-
-  .status-value {
-    font-family: var(--mono);
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text);
-  }
-
-  .status-value.ok { color: var(--ok); }
-  .status-value.warn { color: var(--warning); }
-  .status-value.crit { color: var(--critical); }
-
-  /* MAIN LAYOUT */
-  .main {
-    display: grid;
-    grid-template-columns: 1fr 320px;
-    flex: 1;
-    min-height: 0;
-  }
-
-  /* FLOOR PLAN */
-  .floorplan-panel {
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .panel-header {
-    padding: 14px 24px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-shrink: 0;
-  }
-
-  .panel-title {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    color: var(--muted);
-    text-transform: uppercase;
-  }
-
-  .panel-subtitle {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    opacity: 0.6;
-  }
-
-  .floorplan-wrap {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    position: relative;
-  }
-
-  /* SVG FLOOR PLAN */
-  .fp-svg {
-    width: 100%;
-    max-width: 680px;
-    height: auto;
-  }
-
-  .zone-room {
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-
-  .zone-room:hover { opacity: 0.85; }
-
-  .zone-bg {
-    rx: 2;
-    ry: 2;
-    stroke-width: 1;
-    transition: fill 0.6s ease, stroke 0.6s ease;
-  }
-
-  .zone-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    fill: rgba(255,255,255,0.9);
-    letter-spacing: 0.06em;
-    pointer-events: none;
-  }
-
-  .zone-value {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    fill: rgba(255,255,255,0.95);
-    pointer-events: none;
-  }
-
-  .zone-temp {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    fill: rgba(255,255,255,0.5);
-    pointer-events: none;
-  }
-
-  /* Zone states */
-  .state-ok    .zone-bg { fill: rgba(74,223,150,0.08);  stroke: rgba(74,223,150,0.25); }
-  .state-warn  .zone-bg { fill: rgba(255,170,64,0.12);  stroke: rgba(255,170,64,0.35); }
-  .state-crit  .zone-bg { fill: rgba(255,92,92,0.14);   stroke: rgba(255,92,92,0.40); }
-  .state-alarm .zone-bg {
-    fill: rgba(255,92,92,0.18);
-    stroke: rgba(255,92,92,0.55);
-    animation: alarmPulse 1.8s ease-in-out infinite;
-  }
-
-  @keyframes alarmPulse {
-    0%, 100% { fill: rgba(255,92,92,0.18); stroke: rgba(255,92,92,0.55); }
-    50%       { fill: rgba(255,92,92,0.28); stroke: rgba(255,92,92,0.80); }
-  }
-
-  /* TOOLTIP */
-  .tooltip {
-    position: fixed;
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    padding: 12px 16px;
-    font-family: var(--mono);
-    font-size: 11px;
-    pointer-events: none;
-    z-index: 100;
-    opacity: 0;
-    transition: opacity 0.15s;
-    min-width: 180px;
-  }
-
-  .tooltip.visible { opacity: 1; }
-
-  .tt-name {
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-
-  .tt-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    color: var(--text);
-    line-height: 1.8;
-  }
-
-  .tt-row span:first-child { color: var(--muted); }
-
-  .tt-status {
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border);
-    font-size: 10px;
-    letter-spacing: 0.08em;
-  }
-
-  /* ALARM SIDEBAR */
-  .alarm-sidebar {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .alarm-list {
-    flex: 1;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border2) transparent;
-  }
-
-  .alarm-item {
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--border);
-    cursor: default;
-    transition: background 0.15s;
-  }
-
-  .alarm-item:hover { background: var(--surface2); }
-
-  .alarm-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
-  }
-
-  .alarm-item-name {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text);
-    letter-spacing: 0.02em;
-    line-height: 1.4;
-  }
-
-  .alarm-item-time {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    flex-shrink: 0;
-    margin-left: 8px;
-  }
-
-  .alarm-item-value {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 2px;
-  }
-
-  .badge {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    padding: 2px 6px;
-    border-radius: 2px;
-    text-transform: uppercase;
-  }
-
-  .badge-critical { background: rgba(255,92,92,0.12); color: var(--critical); border: 1px solid rgba(255,92,92,0.2); }
-  .badge-warning  { background: rgba(255,170,64,0.10); color: var(--warning); border: 1px solid rgba(255,170,64,0.2); }
-  .badge-ok       { background: rgba(74,223,150,0.08); color: var(--ok); border: 1px solid rgba(74,223,150,0.15); }
-
-  .alarm-item.is-new {
-    animation: slideDown 0.35s ease forwards;
-  }
-
-  @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-6px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ALARM SUMMARY */
-  .alarm-summary {
-    padding: 12px 20px;
-    border-bottom: 1px solid var(--border);
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    flex-shrink: 0;
-  }
-
-  .summary-cell {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-  }
-
-  .summary-num {
-    font-family: var(--mono);
-    font-size: 20px;
-    font-weight: 500;
-  }
-
-  .summary-num.crit { color: var(--critical); }
-  .summary-num.warn { color: var(--warning); }
-  .summary-num.clr  { color: var(--ok); }
-
-  .summary-label {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    color: var(--muted);
-    text-transform: uppercase;
-  }
-
-  /* LEGEND */
-  .legend {
-    padding: 12px 24px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    gap: 20px;
-    flex-shrink: 0;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.06em;
-  }
-
-  .legend-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 1px;
-  }
-
-  .ld-ok   { background: rgba(74,223,150,0.5); }
-  .ld-warn { background: rgba(255,170,64,0.5); }
-  .ld-crit { background: rgba(255,92,92,0.5); }
+/* LEGEND */
+.legend{
+  display:flex;gap:16px;padding:8px 16px;
+  border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;
+}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:9px;letter-spacing:.06em;color:var(--dim)}
+.ld{width:10px;height:10px}
+.ld-ok{background:var(--zone-ok);border:1px solid rgba(0,180,100,0.3)}
+.ld-warn{background:var(--zone-warn);border:1px solid rgba(255,170,64,0.3)}
+.ld-crit{background:var(--zone-crit);border:1px solid rgba(255,68,102,0.3)}
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
-  <div class="nav-left">
-    <a href="/" class="logo">ARBITER<span>.to</span></a>
-    <div class="nav-site">MULTI-SITE BMS</div>
-    <a href="/demo" style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--muted);text-decoration:none;text-transform:uppercase;padding:4px 0;">Demo</a>
-  </div>
-  <div class="nav-right">
-    <div class="live-indicator">
-      <div class="live-dot"></div>
-      LIVE
+  <div style="display:flex;align-items:center;gap:20px">
+    <div class="nav-logo">ARBITER<span>.to</span></div>
+    <div class="nav-center">
+      <span id="nav-bldg" style="color:var(--muted)">Legion of Honor</span>
+      <span class="nav-sep">/</span>
+      <span style="color:var(--dim)">Multi-Site BMS</span>
+      <span class="nav-sep">/</span>
+      <a href="/demo" class="nav-link" style="color:var(--blue)">Demo</a>
     </div>
+  </div>
+  <div class="nav-r">
+    <div class="live-dot-wrap"><div class="live-dot"></div>LIVE</div>
     <div class="nav-time" id="nav-time">--:--:--</div>
+    <a href="/" class="nav-link">Home</a>
   </div>
 </nav>
 
 <!-- STATUS BAR -->
-<div class="status-bar">
-  <div class="status-cell">
-    <div class="status-label">AHU-1 Fan</div>
-    <div class="status-value ok" id="sb-fan">RUNNING</div>
-  </div>
-  <div class="status-cell">
-    <div class="status-label">SA Temp</div>
-    <div class="status-value" id="sb-sa-temp">55.6°F</div>
-  </div>
-  <div class="status-cell">
-    <div class="status-label">SA Humidity</div>
-    <div class="status-value warn" id="sb-sa-hum">87.4%</div>
-  </div>
-  <div class="status-cell">
-    <div class="status-label">OA Temp / RH</div>
-    <div class="status-value" id="sb-oa">57.3°F / 77%</div>
-  </div>
-  <div class="status-cell">
-    <div class="status-label">CH-1 LWT</div>
-    <div class="status-value ok" id="sb-ch1">44.1°F</div>
-  </div>
-  <div class="status-cell">
-    <div class="status-label">Boiler Steam</div>
-    <div class="status-value ok" id="sb-steam">3.71 psi</div>
-  </div>
+<div class="status-bar" id="status-bar"></div>
+
+<!-- BUILDING TABS -->
+<div class="bldg-tabs">
+  <div class="bldg-tab active" data-bldg="legion">Legion of Honor</div>
+  <div class="bldg-tab" data-bldg="office">Office Tower</div>
+  <div class="bldg-tab" data-bldg="hospital">Hospital / Lab</div>
+  <div class="bldg-tab" data-bldg="datacenter">Data Center</div>
+  <div class="bldg-tab" data-bldg="warehouse">Warehouse</div>
 </div>
 
-<!-- MAIN -->
 <div class="main">
-
   <!-- FLOOR PLAN -->
-  <div class="floorplan-panel">
-    <div class="panel-header">
-      <div class="panel-title">// Garden Level — Rosecrans Galleries</div>
-      <div class="panel-subtitle">RH setpoint 50.0% — alarm at 60.0%</div>
+  <div class="fp-panel">
+    <div class="fp-header">
+      <div class="fp-title" id="fp-title">// Garden Level — Rosecrans Galleries</div>
+      <div class="fp-subtitle" id="fp-subtitle">RH setpoint 50.0% — alarm at 60.0%</div>
     </div>
-    <div class="floorplan-wrap">
-      <svg class="fp-svg" viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg">
-
-        <!-- Outer building boundary -->
-        <rect x="8" y="8" width="704" height="424" rx="3"
-              fill="rgba(255,255,255,0.015)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-
-        <!-- Entry / staircase area (left notch) -->
-        <rect x="8" y="8" width="90" height="200" rx="2"
-              fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="4,3"/>
-        <text font-family="IBM Plex Mono" font-size="8" fill="rgba(255,255,255,0.18)"
-              letter-spacing="0.1em" x="53" y="100" text-anchor="middle" transform="rotate(-90,53,100)">ENTRY / STAIRS</text>
-
-        <!-- Horizontal corridor spine -->
-        <rect x="98" y="185" width="524" height="28"
-              fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-        <text font-family="IBM Plex Mono" font-size="7" fill="rgba(255,255,255,0.15)"
-              letter-spacing="0.12em" x="360" y="202" text-anchor="middle">CORRIDOR</text>
-
-        <!-- ── ROW 1 (top) ── -->
-
-        <!-- Gallery 2-01 (A) -->
-        <g class="zone-room" id="zone-201" data-zone="2-01" onclick="selectZone('2-01')">
-          <rect class="zone-bg" x="98" y="12" width="130" height="170" rx="2"/>
-          <text class="zone-label" x="163" y="78" text-anchor="middle">2-01 (A)</text>
-          <text class="zone-value" x="163" y="100" text-anchor="middle" id="rh-201">52.3%</text>
-          <text class="zone-temp"  x="163" y="118" text-anchor="middle" id="tmp-201">67.9°F</text>
-        </g>
-
-        <!-- Gallery 2-04 (B) -->
-        <g class="zone-room" id="zone-204" data-zone="2-04" onclick="selectZone('2-04')">
-          <rect class="zone-bg" x="232" y="12" width="130" height="170" rx="2"/>
-          <text class="zone-label" x="297" y="78" text-anchor="middle">2-04 (B)</text>
-          <text class="zone-value" x="297" y="100" text-anchor="middle" id="rh-204">56.2%</text>
-          <text class="zone-temp"  x="297" y="118" text-anchor="middle" id="tmp-204">68.2°F</text>
-        </g>
-
-        <!-- Gallery 2-07 (C) -->
-        <g class="zone-room" id="zone-207" data-zone="2-07" onclick="selectZone('2-07')">
-          <rect class="zone-bg" x="366" y="12" width="130" height="170" rx="2"/>
-          <text class="zone-label" x="431" y="78" text-anchor="middle">2-07 (C)</text>
-          <text class="zone-value" x="431" y="100" text-anchor="middle" id="rh-207">58.1%</text>
-          <text class="zone-temp"  x="431" y="118" text-anchor="middle" id="tmp-207">69.1°F</text>
-        </g>
-
-        <!-- Gallery 2-10 AFGA (spans full height right side) -->
-        <g class="zone-room" id="zone-210" data-zone="2-10" onclick="selectZone('2-10')">
-          <rect class="zone-bg" x="622" y="12" width="90" height="360" rx="2"/>
-          <text class="zone-label" x="667" y="170" text-anchor="middle">2-10</text>
-          <text class="zone-label" x="667" y="183" text-anchor="middle">AFGA</text>
-          <text class="zone-value" x="667" y="208" text-anchor="middle" id="rh-210">50.6%</text>
-          <text class="zone-temp"  x="667" y="226" text-anchor="middle" id="tmp-210">58.8°F</text>
-        </g>
-
-        <!-- ── ROW 2 (bottom) ── -->
-
-        <!-- Gallery 2-03 (F) -->
-        <g class="zone-room" id="zone-203" data-zone="2-03" onclick="selectZone('2-03')">
-          <rect class="zone-bg" x="98" y="216" width="130" height="170" rx="2"/>
-          <text class="zone-label" x="163" y="282" text-anchor="middle">2-03 (F)</text>
-          <text class="zone-value" x="163" y="304" text-anchor="middle" id="rh-203">52.0%</text>
-          <text class="zone-temp"  x="163" y="322" text-anchor="middle" id="tmp-203">68.3°F</text>
-        </g>
-
-        <!-- Gallery 2-05 (G) -->
-        <g class="zone-room" id="zone-205" data-zone="2-05" onclick="selectZone('2-05')">
-          <rect class="zone-bg" x="232" y="216" width="130" height="170" rx="2"/>
-          <text class="zone-label" x="297" y="282" text-anchor="middle">2-05 (G)</text>
-          <text class="zone-value" x="297" y="304" text-anchor="middle" id="rh-205">57.3%</text>
-          <text class="zone-temp"  x="297" y="322" text-anchor="middle" id="tmp-205">67.6°F</text>
-        </g>
-
-        <!-- Gallery 2-06 (E) -->
-        <g class="zone-room" id="zone-206" data-zone="2-06" onclick="selectZone('2-06')">
-          <rect class="zone-bg" x="366" y="216" width="130" height="170" rx="2"/>
-          <text class="zone-label" x="431" y="282" text-anchor="middle">2-06 (E)</text>
-          <text class="zone-value" x="431" y="304" text-anchor="middle" id="rh-206">55.3%</text>
-          <text class="zone-temp"  x="431" y="322" text-anchor="middle" id="tmp-206">69.1°F</text>
-        </g>
-
-        <!-- Gallery 2-08 (D) — spans between corridor and bottom, offset right -->
-        <g class="zone-room" id="zone-208" data-zone="2-08" onclick="selectZone('2-08')">
-          <rect class="zone-bg" x="500" y="216" width="118" height="170" rx="2"/>
-          <text class="zone-label" x="559" y="282" text-anchor="middle">2-08 (D)</text>
-          <text class="zone-value" x="559" y="304" text-anchor="middle" id="rh-208">54.1%</text>
-          <text class="zone-temp"  x="559" y="322" text-anchor="middle" id="tmp-208">69.9°F</text>
-        </g>
-
-        <!-- AHU-1 status block bottom left -->
-        <g transform="translate(8, 220)">
-          <rect x="0" y="0" width="86" height="170" rx="2"
-                fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.05)"
-                stroke-width="1" stroke-dasharray="3,3"/>
-          <text font-family="IBM Plex Mono" font-size="8" fill="rgba(255,255,255,0.25)"
-                letter-spacing="0.08em" x="43" y="60" text-anchor="middle">AHU-1</text>
-          <text font-family="IBM Plex Mono" font-size="8" fill="rgba(255,255,255,0.25)"
-                letter-spacing="0.08em" x="43" y="73" text-anchor="middle">SF-1</text>
-          <text font-family="IBM Plex Mono" font-size="9" fill="rgba(74,223,150,0.8)"
-                x="43" y="100" text-anchor="middle" id="fp-fan">● ON</text>
-          <text font-family="IBM Plex Mono" font-size="8" fill="rgba(255,255,255,0.25)"
-                x="43" y="120" text-anchor="middle" id="fp-sa">55.6°F</text>
-          <text font-family="IBM Plex Mono" font-size="8" fill="rgba(255,255,255,0.25)"
-                x="43" y="133" text-anchor="middle">87.4%RH</text>
-        </g>
-
-        <!-- South wing label -->
-        <text font-family="IBM Plex Mono" font-size="8" fill="rgba(255,255,255,0.15)"
-              letter-spacing="0.14em" x="360" y="430" text-anchor="middle">
-          GARDEN LEVEL — ROSECRANS GALLERIES — LEGION OF HONOR
-        </text>
-
-      </svg>
-    </div>
-
-    <div class="legend">
-      <div class="legend-item"><div class="legend-dot ld-ok"></div>NORMAL (&lt;55%)</div>
-      <div class="legend-item"><div class="legend-dot ld-warn"></div>ELEVATED (55–60%)</div>
-      <div class="legend-item"><div class="legend-dot ld-crit"></div>ALARM (&gt;60%)</div>
-    </div>
+    <div class="fp-wrap" id="fp-wrap"></div>
+    <div class="legend" id="legend"></div>
   </div>
 
   <!-- ALARM SIDEBAR -->
   <div class="alarm-sidebar">
-    <div class="panel-header">
-      <div class="panel-title">// Active Alarms</div>
-    </div>
-
+    <div class="alarm-header"><div class="alarm-title">// Active Alarms</div></div>
     <div class="alarm-summary">
-      <div class="summary-cell">
-        <div class="summary-num crit" id="count-crit">0</div>
-        <div class="summary-label">Critical</div>
-      </div>
-      <div class="summary-cell">
-        <div class="summary-num warn" id="count-warn">0</div>
-        <div class="summary-label">Warning</div>
-      </div>
-      <div class="summary-cell">
-        <div class="summary-num clr" id="count-clr">0</div>
-        <div class="summary-label">Cleared</div>
-      </div>
+      <div class="sum-cell"><div class="sum-num crit" id="cnt-crit">0</div><div class="sum-lbl">Critical</div></div>
+      <div class="sum-cell"><div class="sum-num warn" id="cnt-warn">0</div><div class="sum-lbl">Warning</div></div>
+      <div class="sum-cell"><div class="sum-num clr" id="cnt-clr">0</div><div class="sum-lbl">Cleared</div></div>
     </div>
-
-    <div class="alarm-list" id="alarm-list">
-      <!-- populated by JS -->
-    </div>
+    <div class="alarm-list" id="alarm-list"></div>
   </div>
-
-</div>
-
-<!-- TOOLTIP -->
-<div class="tooltip" id="tooltip">
-  <div class="tt-name" id="tt-name">—</div>
-  <div class="tt-row"><span>Humidity</span><span id="tt-rh">—</span></div>
-  <div class="tt-row"><span>Temperature</span><span id="tt-tmp">—</span></div>
-  <div class="tt-row"><span>RHC Valve</span><span id="tt-rhc">—</span></div>
-  <div class="tt-status" id="tt-status">—</div>
 </div>
 
 <script>
-// ─── State ───────────────────────────────────────────────────────────────────
-var ZONES = {
-  '2-01': { label: 'Gallery 2-01', rh: 52.3, tmp: 67.9, rhc: 50.4 },
-  '2-03': { label: 'Gallery 2-03', rh: 52.0, tmp: 68.3, rhc:  0.0 },
-  '2-04': { label: 'Gallery 2-04', rh: 56.2, tmp: 68.2, rhc: 70.9 },
-  '2-05': { label: 'Gallery 2-05', rh: 57.3, tmp: 67.6, rhc:100.0 },
-  '2-06': { label: 'Gallery 2-06', rh: 55.3, tmp: 69.1, rhc: 99.8 },
-  '2-07': { label: 'Gallery 2-07', rh: 58.1, tmp: 69.1, rhc: 75.2 },
-  '2-08': { label: 'Gallery 2-08', rh: 54.1, tmp: 69.9, rhc: 55.0 },
-  '2-10': { label: 'Gallery 2-10 (AFGA)', rh: 50.6, tmp: 58.8, rhc: 38.8 },
+setInterval(function(){document.getElementById('nav-time').textContent=new Date().toTimeString().slice(0,8);},1000);
+
+// ── BUILDING DEFINITIONS ──────────────────────────────────────────────────────
+
+var BUILDINGS={
+
+  legion:{
+    name:'Legion of Honor',
+    title:'Garden Level — Rosecrans Galleries',
+    subtitle:'RH setpoint 50.0% — alarm at 60.0%',
+    status:[
+      {label:'AHU-1 Fan',val:'RUNNING',cls:'ok'},
+      {label:'SA Temp',val:'55.6°F',cls:''},
+      {label:'SA Humidity',val:'87.4%',cls:'warn'},
+      {label:'OA Temp / RH',val:'57.3°F / 77%',cls:''},
+      {label:'CH-1 LWT',val:'44.1°F',cls:'ok'},
+      {label:'Boiler Steam',val:'3.71 psi',cls:'ok'},
+    ],
+    legend:[
+      {cls:'ld-ok',label:'Normal (<55%)'},
+      {cls:'ld-warn',label:'Elevated (55–60%)'},
+      {cls:'ld-crit',label:'Alarm (>60%)'},
+    ],
+    zones:{
+      '201':{rh:52.3,tmp:67.9,label:'Gallery 2-01',rhc:50.4},
+      '203':{rh:52.0,tmp:68.3,label:'Gallery 2-03',rhc:0},
+      '204':{rh:56.2,tmp:68.2,label:'Gallery 2-04',rhc:70.9},
+      '205':{rh:57.3,tmp:67.6,label:'Gallery 2-05',rhc:100},
+      '206':{rh:55.3,tmp:69.1,label:'Gallery 2-06',rhc:99.8},
+      '207':{rh:58.1,tmp:69.1,label:'Gallery 2-07',rhc:75.2},
+      '208':{rh:54.1,tmp:69.9,label:'Gallery 2-08',rhc:55},
+      '210':{rh:50.6,tmp:58.8,label:'2-10 AFGA',rhc:38.8},
+    },
+    svg:function(zones){
+      function zc(id){var z=zones[id];if(!z)return 'dim';return z.rh>=60?'crit':z.rh>=55?'warn':'ok';}
+      function rv(id,field){var z=zones[id];if(!z)return'—';return field==='rh'?z.rh.toFixed(1)+'%':z.tmp.toFixed(1)+'°F';}
+      return '<svg class="fp-svg" viewBox="0 0 760 430" xmlns="http://www.w3.org/2000/svg">'+
+        // outer shell
+        '<rect x="8" y="8" width="744" height="414" class="struct-fill" rx="3"/>'+
+        // entry/stairs
+        '<rect x="18" y="18" width="80" height="394" class="struct-fill"/>'+
+        '<text class="struct-label" x="58" y="220" text-anchor="middle" transform="rotate(-90,58,220)">ENTRY / STAIRS</text>'+
+        // corridor
+        '<rect x="108" y="198" width="564" height="34" class="corridor-fill"/>'+
+        '<text class="struct-label" x="390" y="219" text-anchor="middle">CORRIDOR</text>'+
+        // top row galleries
+        zone(108,18,140,170,'201',zc('201'),rv('201','rh'),rv('201','tmp'),'2-01 (A)')+
+        zone(258,18,140,170,'204',zc('204'),rv('204','rh'),rv('204','tmp'),'2-04 (B)')+
+        zone(408,18,140,170,'207',zc('207'),rv('207','rh'),rv('207','tmp'),'2-07 (C)')+
+        // bottom row galleries
+        zone(108,240,140,170,'203',zc('203'),rv('203','rh'),rv('203','tmp'),'2-03 (F)')+
+        zone(258,240,140,170,'205',zc('205'),rv('205','rh'),rv('205','tmp'),'2-05 (G)')+
+        zone(408,240,140,170,'206',zc('206'),rv('206','rh'),rv('206','tmp'),'2-06 (E)')+
+        zone(558,240,140,170,'208',zc('208'),rv('208','rh'),rv('208','tmp'),'2-08 (D)')+
+        // AFGA tall
+        '<g class="zone-room" id="zone-210"><rect class="zone-bg '+zc('210')+'" x="558" y="18" width="140" height="170" rx="2"/>'+
+        '<text class="zone-label" x="628" y="80" text-anchor="middle">2-10</text>'+
+        '<text class="zone-label" x="628" y="92" text-anchor="middle">AFGA</text>'+
+        '<text class="zone-value" x="628" y="118" text-anchor="middle">'+rv('210','rh')+'</text>'+
+        '<text class="zone-sub" x="628" y="135" text-anchor="middle">'+rv('210','tmp')+'</text></g>'+
+        // AHU
+        '<rect x="18" y="240" width="80" height="80" class="struct-fill"/>'+
+        '<text class="zone-icon" x="58" y="272" text-anchor="middle">AHU-1</text>'+
+        '<text class="zone-icon" x="58" y="285" text-anchor="middle">SF-1</text>'+
+        '<text class="struct-label" x="628" y="424" text-anchor="middle">GARDEN LEVEL — ROSECRANS GALLERIES — LEGION OF HONOR</text>'+
+        '</svg>';
+    },
+    alarms:[
+      {zone:'Gallery 2-07',desc:'SpaceRH elevated',val:'58.1%RH / limit 60%',cls:'warn',time:'16:41:02'},
+      {zone:'Gallery 2-04',desc:'RHC valve high demand',val:'70.9% open',cls:'warn',time:'16:39:44'},
+      {zone:'AHU-1',desc:'SA humidity high',val:'87.4%RH',cls:'crit',time:'16:38:10'},
+    ]
+  },
+
+  office:{
+    name:'Office Tower',
+    title:'Floors 1–28 — Mechanical & Office Zones',
+    subtitle:'HVAC setpoints: 70°F cooling / 68°F heating',
+    status:[
+      {label:'AHU-2 Fan',val:'RUNNING',cls:'ok'},
+      {label:'SA Temp',val:'61.4°F',cls:''},
+      {label:'Chiller-1',val:'47.3°F',cls:'ok'},
+      {label:'RTU-1 OA Dmpr',val:'11.2%',cls:''},
+      {label:'Lighting Ctrl',val:'AUTO',cls:'ok'},
+      {label:'Fire Panel',val:'NORMAL',cls:'ok'},
+    ],
+    legend:[
+      {cls:'ld-ok',label:'Normal (68–74°F)'},
+      {cls:'ld-warn',label:'Elevated (74–78°F)'},
+      {cls:'ld-crit',label:'Alarm (>78°F)'},
+    ],
+    zones:{
+      'lobby':   {tmp:71.2,rh:45,label:'Main Lobby'},
+      'conf1':   {tmp:73.8,rh:48,label:'Conf Rm 1A'},
+      'conf2':   {tmp:72.1,rh:46,label:'Conf Rm 1B'},
+      'mech1':   {tmp:78.5,rh:52,label:'Mech Rm L1'},
+      'elec1':   {tmp:74.2,rh:44,label:'Elec Rm L1'},
+      'open10':  {tmp:72.5,rh:47,label:'Open Office 10'},
+      'open11':  {tmp:74.8,rh:49,label:'Open Office 11'},
+      'open12':  {tmp:77.2,rh:51,label:'Open Office 12'},
+      'exec14':  {tmp:70.8,rh:45,label:'Exec Suite 14'},
+      'idf10':   {tmp:76.4,rh:42,label:'IDF Closet 10'},
+      'idf20':   {tmp:75.1,rh:41,label:'IDF Closet 20'},
+      'mdf':     {tmp:72.3,rh:40,label:'MDF Room'},
+      'cafe':    {tmp:73.5,rh:50,label:'Cafeteria'},
+      'gym':     {tmp:74.0,rh:55,label:'Fitness Ctr'},
+      'roof':    {tmp:82.1,rh:38,label:'Roof Mech'},
+      'pkg':     {tmp:68.5,rh:44,label:'Parking L1'},
+    },
+    svg:function(zones){
+      function tc(id){var z=zones[id];if(!z)return'dim';return z.tmp>=78?'crit':z.tmp>=74?'warn':'ok';}
+      function tv(id){var z=zones[id];if(!z)return'—';return z.tmp.toFixed(1)+'°F';}
+      function rv(id){var z=zones[id];if(!z)return'—';return z.rh+'%RH';}
+      return '<svg class="fp-svg" viewBox="0 0 820 520" xmlns="http://www.w3.org/2000/svg">'+
+        '<rect x="8" y="8" width="804" height="504" class="struct-fill" rx="3"/>'+
+        // basement/parking
+        '<rect x="18" y="420" width="784" height="80" class="corridor-fill"/>'+
+        '<text class="struct-label" x="410" y="462" text-anchor="middle">BASEMENT — PARKING & UTILITIES</text>'+
+        zone(18,18,200,80,'lobby',tc('lobby'),tv('lobby'),'','MAIN LOBBY')+
+        zone(228,18,160,80,'conf1',tc('conf1'),tv('conf1'),'','CONF 1A')+
+        zone(398,18,160,80,'conf2',tc('conf2'),tv('conf2'),'','CONF 1B')+
+        zone(568,18,120,80,'cafe',tc('cafe'),tv('cafe'),'','CAFETERIA')+
+        zone(698,18,112,80,'gym',tc('gym'),tv('gym'),'','FITNESS')+
+        // floor 10
+        '<rect x="18" y="108" width="784" height="12" class="corridor-fill"/>'+
+        '<text class="struct-label" x="410" y="118" text-anchor="middle">FLOORS 2–9 — OPEN OFFICE</text>'+
+        zone(18,130,240,80,'open10',tc('open10'),tv('open10'),'','OPEN OFFICE FL.10')+
+        zone(268,130,240,80,'open11',tc('open11'),tv('open11'),'','OPEN OFFICE FL.11')+
+        zone(518,130,190,80,'open12',tc('open12'),tv('open12'),'','OPEN OFFICE FL.12')+
+        zone(718,130,92,80,'idf10',tc('idf10'),tv('idf10'),'','IDF FL.10')+
+        // floor 14 exec
+        '<rect x="18" y="220" width="784" height="10" class="corridor-fill"/>'+
+        zone(18,240,380,80,'exec14',tc('exec14'),tv('exec14'),'','EXECUTIVE SUITE FL.14')+
+        zone(408,240,200,80,'mdf',tc('mdf'),tv('mdf'),'','MDF ROOM')+
+        zone(618,240,192,80,'idf20',tc('idf20'),tv('idf20'),'','IDF FL.20')+
+        // mechanical
+        '<rect x="18" y="330" width="784" height="10" class="corridor-fill"/>'+
+        zone(18,350,200,60,'mech1',tc('mech1'),tv('mech1'),'','MECH RM L1')+
+        zone(228,350,160,60,'elec1',tc('elec1'),tv('elec1'),'','ELEC RM L1')+
+        zone(398,350,200,60,'roof',tc('roof'),tv('roof'),'','ROOF MECH')+
+        zone(608,350,200,60,'pkg',tc('pkg'),tv('pkg'),'','PARKING')+
+        '<text class="struct-label" x="410" y="512" text-anchor="middle">28-FLOOR COMMERCIAL OFFICE TOWER</text>'+
+        '</svg>';
+    },
+    alarms:[
+      {zone:'Roof Mech',desc:'Supply air temp high',val:'82.1°F / limit 78°F',cls:'crit',time:'16:40:18'},
+      {zone:'Open Office 12',desc:'Zone temp elevated',val:'77.2°F',cls:'warn',time:'16:38:55'},
+      {zone:'MDF Room',desc:'Server room temp rising',val:'72.3°F — watch',cls:'warn',time:'16:35:22'},
+    ]
+  },
+
+  hospital:{
+    name:'Hospital / Lab',
+    title:'Critical Care, OR, Lab & Mechanical',
+    subtitle:'HEPA filtration zones — pressure differential monitoring',
+    status:[
+      {label:'AHU-3 Status',val:'RUNNING',cls:'ok'},
+      {label:'OR Suite Pr',val:'+0.02 in wc',cls:'ok'},
+      {label:'Lab Pressure',val:'-0.01 in wc',cls:'ok'},
+      {label:'Boiler-1 Steam',val:'198.5°F',cls:'warn'},
+      {label:'O2 Manifold',val:'46.5 PSI',cls:'ok'},
+      {label:'Code Status',val:'ALL CLEAR',cls:'ok'},
+    ],
+    legend:[
+      {cls:'ld-ok',label:'Normal / Compliant'},
+      {cls:'ld-warn',label:'Monitor / Elevated'},
+      {cls:'ld-crit',label:'Alarm / Out of Range'},
+    ],
+    zones:{
+      'or1':    {tmp:66.0,pr:0.02,label:'OR Suite 1',type:'or'},
+      'or2':    {tmp:65.5,pr:0.02,label:'OR Suite 2',type:'or'},
+      'or3':    {tmp:66.2,pr:0.019,label:'OR Suite 3',type:'or'},
+      'scrub':  {tmp:68.0,pr:0.01,label:'Scrub Room',type:'support'},
+      'sterile':{tmp:65.0,pr:0.015,label:'Sterile Supply',type:'support'},
+      'icu1':   {tmp:70.0,pr:0.005,label:'ICU Bay 1',type:'icu'},
+      'icu2':   {tmp:71.2,pr:0.005,label:'ICU Bay 2',type:'icu'},
+      'icu3':   {tmp:70.8,pr:0.005,label:'ICU Bay 3',type:'icu'},
+      'lab_micro':{tmp:68.5,pr:-0.01,label:'Microbiology',type:'lab'},
+      'lab_chem': {tmp:67.2,pr:-0.012,label:'Chemistry Lab',type:'lab'},
+      'lab_path': {tmp:68.0,pr:-0.01,label:'Pathology Lab',type:'lab'},
+      'ult1':   {tmp:-76.2,pr:0,label:'ULT Freezer Row A',type:'cold'},
+      'ult2':   {tmp:-75.1,pr:0,label:'ULT Freezer Row B',type:'cold'},
+      'clean1': {tmp:68.0,pr:0.018,label:'Clean Room 1',type:'clean'},
+      'boiler': {tmp:198.5,pr:0,label:'Boiler Room',type:'mech'},
+      'mech_h': {tmp:74.2,pr:0,label:'Mech Room',type:'mech'},
+    },
+    svg:function(zones){
+      function oc(id){var z=zones[id];if(!z)return'dim';
+        if(z.type==='cold')return z.tmp>-74?'crit':'ok';
+        if(z.type==='or'||z.type==='clean')return z.pr<0.01?'crit':z.pr<0.015?'warn':'ok';
+        if(z.type==='lab')return z.pr>-0.008?'warn':'ok';
+        if(z.type==='mech')return z.tmp>185?'crit':z.tmp>175?'warn':'ok';
+        return z.tmp>78?'crit':z.tmp>74?'warn':'ok';}
+      function dv(id){var z=zones[id];if(!z)return'—';
+        if(z.type==='cold')return z.tmp.toFixed(1)+'°C';
+        if(z.type==='or'||z.type==='clean'||z.type==='lab')return (z.pr>=0?'+':'')+z.pr+' in wc';
+        return z.tmp.toFixed(1)+'°F';}
+      return '<svg class="fp-svg" viewBox="0 0 820 540" xmlns="http://www.w3.org/2000/svg">'+
+        '<rect x="8" y="8" width="804" height="524" class="struct-fill" rx="3"/>'+
+        // OR wing
+        '<rect x="18" y="18" width="784" height="14" class="corridor-fill"/>'+
+        '<text class="struct-label" x="410" y="28" text-anchor="middle">SURGICAL WING — POSITIVE PRESSURE ZONES</text>'+
+        zone(18,40,180,90,'or1',oc('or1'),dv('or1'),'','OR SUITE 1')+
+        zone(208,40,180,90,'or2',oc('or2'),dv('or2'),'','OR SUITE 2')+
+        zone(398,40,180,90,'or3',oc('or3'),dv('or3'),'','OR SUITE 3')+
+        zone(588,40,120,90,'scrub',oc('scrub'),dv('scrub'),'','SCRUB RM')+
+        zone(718,40,94,90,'sterile',oc('sterile'),dv('sterile'),'','STERILE')+
+        // ICU
+        '<rect x="18" y="140" width="784" height="12" class="corridor-fill"/>'+
+        '<text class="struct-label" x="410" y="150" text-anchor="middle">ICU / CRITICAL CARE</text>'+
+        zone(18,162,240,80,'icu1',oc('icu1'),dv('icu1'),'','ICU BAY 1')+
+        zone(268,162,240,80,'icu2',oc('icu2'),dv('icu2'),'','ICU BAY 2')+
+        zone(518,162,292,80,'icu3',oc('icu3'),dv('icu3'),'','ICU BAY 3')+
+        // Lab wing — negative pressure
+        '<rect x="18" y="252" width="784" height="12" class="corridor-fill"/>'+
+        '<text class="struct-label" x="410" y="262" text-anchor="middle">LABORATORY WING — NEGATIVE PRESSURE</text>'+
+        zone(18,274,240,80,'lab_micro',oc('lab_micro'),dv('lab_micro'),'','MICROBIOLOGY')+
+        zone(268,274,240,80,'lab_chem',oc('lab_chem'),dv('lab_chem'),'','CHEMISTRY')+
+        zone(518,274,192,80,'lab_path',oc('lab_path'),dv('lab_path'),'','PATHOLOGY')+
+        zone(720,274,92,80,'clean1',oc('clean1'),dv('clean1'),'','CLEAN RM')+
+        // Cold storage
+        '<rect x="18" y="364" width="784" height="12" class="corridor-fill"/>'+
+        '<text class="struct-label" x="410" y="374" text-anchor="middle">COLD STORAGE — ULT FREEZER BANKS</text>'+
+        zone(18,386,370,80,'ult1',oc('ult1'),dv('ult1'),'','ULT FREEZER ROW A')+
+        zone(398,386,370,80,'ult2',oc('ult2'),dv('ult2'),'','ULT FREEZER ROW B')+
+        // Mechanical
+        '<rect x="18" y="476" width="784" height="10" class="corridor-fill"/>'+
+        zone(18,496,370,34,'boiler',oc('boiler'),dv('boiler'),'','BOILER ROOM')+
+        zone(398,496,414,34,'mech_h',oc('mech_h'),dv('mech_h'),'','MECHANICAL ROOM')+
+        '<text class="struct-label" x="410" y="528" text-anchor="middle">HOSPITAL & RESEARCH LABORATORY FACILITY</text>'+
+        '</svg>';
+    },
+    alarms:[
+      {zone:'Boiler Room',desc:'Supply water temp high',val:'198.5°F / limit 200°F',cls:'warn',time:'16:42:01'},
+      {zone:'ULT Freezer Row A',desc:'Cabinet temp at limit',val:'-76.2°C',cls:'warn',time:'16:39:30'},
+      {zone:'OR Suite 3',desc:'Pressure differential low',val:'+0.019 in wc',cls:'warn',time:'16:36:12'},
+    ]
+  },
+
+  datacenter:{
+    name:'Data Center',
+    title:'Colocation Facility — Thermal & Power Monitoring',
+    subtitle:'Inlet temp setpoint 70°F — hot aisle containment',
+    status:[
+      {label:'CRAC-2 Status',val:'RUNNING',cls:'ok'},
+      {label:'CRAC-5 Status',val:'RUNNING',cls:'ok'},
+      {label:'UPS-1 Load',val:'62%',cls:'ok'},
+      {label:'UPS-2 Battery',val:'52%',cls:'warn'},
+      {label:'Generator',val:'STANDBY',cls:'ok'},
+      {label:'PUE',val:'1.42',cls:''},
+    ],
+    legend:[
+      {cls:'ld-ok',label:'Normal (<72°F)'},
+      {cls:'ld-warn',label:'Elevated (72–80°F)'},
+      {cls:'ld-crit',label:'Alarm (>80°F)'},
+    ],
+    zones:{
+      'crac1':  {tmp:58.0,label:'CRAC-1',type:'crac'},
+      'crac2':  {tmp:59.2,label:'CRAC-2',type:'crac'},
+      'crac3':  {tmp:57.8,label:'CRAC-3',type:'crac'},
+      'rackA':  {tmp:71.3,label:'Rack Row A',type:'rack'},
+      'rackB':  {tmp:84.2,label:'Rack Row B',type:'rack'},
+      'rackC':  {tmp:72.8,label:'Rack Row C',type:'rack'},
+      'rackD':  {tmp:70.1,label:'Rack Row D',type:'rack'},
+      'rackE':  {tmp:84.5,label:'Rack Row E',type:'rack'},
+      'rackF':  {tmp:69.8,label:'Rack Row F',type:'rack'},
+      'ups1':   {tmp:72.0,label:'UPS Room 1',type:'ups'},
+      'ups2':   {tmp:74.5,label:'UPS Room 2',type:'ups'},
+      'gen':    {tmp:68.0,label:'Generator Rm',type:'mech'},
+      'noc':    {tmp:70.2,label:'NOC',type:'office'},
+      'idf_dc': {tmp:71.5,label:'IDF / Patch',type:'idf'},
+      'fiber':  {tmp:69.0,label:'Fiber Entry',type:'idf'},
+      'loading':{tmp:75.0,label:'Loading Dock',type:'support'},
+    },
+    svg:function(zones){
+      function rc(id){var z=zones[id];if(!z)return'dim';
+        if(z.type==='crac')return'ok';
+        return z.tmp>=80?'crit':z.tmp>=72?'warn':'ok';}
+      function rv(id){var z=zones[id];if(!z)return'—';return z.tmp.toFixed(1)+'°F';}
+      return '<svg class="fp-svg" viewBox="0 0 820 480" xmlns="http://www.w3.org/2000/svg">'+
+        '<rect x="8" y="8" width="804" height="464" class="struct-fill" rx="3"/>'+
+        // CRAC units top
+        '<rect x="18" y="18" width="784" height="12" class="corridor-fill"/>'+
+        '<text class="struct-label" x="410" y="28" text-anchor="middle">CRAC UNITS — COLD AISLE SUPPLY</text>'+
+        zone(18,38,240,60,'crac1',rc('crac1'),rv('crac1'),'','CRAC-1')+
+        zone(268,38,240,60,'crac2',rc('crac2'),rv('crac2'),'','CRAC-2')+
+        zone(518,60,130,38,'crac3',rc('crac3'),rv('crac3'),'','CRAC-3')+
+        // rack rows
+        '<rect x="18" y="108" width="784" height="10" class="corridor-fill"/>'+
+        '<text class="struct-label" x="410" y="117" text-anchor="middle">SERVER RACK ROWS — HOT/COLD AISLE CONTAINMENT</text>'+
+        zone(18,128,116,60,'rackA',rc('rackA'),rv('rackA'),'','ROW A')+
+        zone(144,128,116,60,'rackB',rc('rackB'),rv('rackB'),'','ROW B')+
+        zone(270,128,116,60,'rackC',rc('rackC'),rv('rackC'),'','ROW C')+
+        zone(396,128,116,60,'rackD',rc('rackD'),rv('rackD'),'','ROW D')+
+        zone(522,128,116,60,'rackE',rc('rackE'),rv('rackE'),'','ROW E')+
+        zone(648,128,162,60,'rackF',rc('rackF'),rv('rackF'),'','ROW F')+
+        // hot aisle
+        '<rect x="18" y="198" width="784" height="20" style="fill:rgba(80,30,0,0.2);stroke:rgba(255,100,0,0.15);stroke-width:0.5"/>'+
+        '<text class="struct-label" x="410" y="212" text-anchor="middle" style="fill:rgba(255,150,50,0.3)">HOT AISLE</text>'+
+        // power
+        '<rect x="18" y="228" width="784" height="10" class="corridor-fill"/>'+
+        '<text class="struct-label" x="410" y="237" text-anchor="middle">POWER INFRASTRUCTURE</text>'+
+        zone(18,248,260,80,'ups1',rc('ups1'),rv('ups1'),'','UPS ROOM 1')+
+        zone(288,248,260,80,'ups2',rc('ups2'),rv('ups2'),'','UPS ROOM 2')+
+        zone(558,248,130,80,'gen',rc('gen'),rv('gen'),'','GENERATOR')+
+        zone(698,248,114,80,'noc',rc('noc'),rv('noc'),'','NOC')+
+        // network/support
+        '<rect x="18" y="338" width="784" height="10" class="corridor-fill"/>'+
+        zone(18,358,200,80,'idf_dc',rc('idf_dc'),rv('idf_dc'),'','IDF / PATCH')+
+        zone(228,358,200,80,'fiber',rc('fiber'),rv('fiber'),'','FIBER ENTRY')+
+        zone(438,358,200,80,'loading',rc('loading'),rv('loading'),'','LOADING DOCK')+
+        '<text class="struct-label" x="410" y="468" text-anchor="middle">COLOCATION DATA CENTER FACILITY</text>'+
+        '</svg>';
+    },
+    alarms:[
+      {zone:'Rack Row B',desc:'Inlet temp critical',val:'84.2°F / limit 80°F',cls:'crit',time:'16:41:55'},
+      {zone:'Rack Row E',desc:'Inlet temp critical',val:'84.5°F / limit 80°F',cls:'crit',time:'16:41:48'},
+      {zone:'UPS Room 2',desc:'Battery level low',val:'52% / target 80%',cls:'warn',time:'16:38:03'},
+    ]
+  },
+
+  warehouse:{
+    name:'Warehouse',
+    title:'Distribution & Cold Storage Facility',
+    subtitle:'Dock heaters, cold storage, fire suppression monitoring',
+    status:[
+      {label:'Boiler-2',val:'183.5°F',cls:'warn'},
+      {label:'RTU-1 SA',val:'77.0°F',cls:''},
+      {label:'Cold Storage',val:'-18.2°F',cls:'ok'},
+      {label:'Fire Suppress',val:'ARMED',cls:'ok'},
+      {label:'Sprinkler Pr',val:'121 PSI',cls:'ok'},
+      {label:'Loading Docks',val:'4 ACTIVE',cls:''},
+    ],
+    legend:[
+      {cls:'ld-ok',label:'Normal'},
+      {cls:'ld-warn',label:'Monitor'},
+      {cls:'ld-crit',label:'Alarm'},
+    ],
+    zones:{
+      'dock1':  {tmp:41.5,label:'Dock Bay 1',type:'dock'},
+      'dock2':  {tmp:42.0,label:'Dock Bay 2',type:'dock'},
+      'dock3':  {tmp:40.8,label:'Dock Bay 3',type:'dock'},
+      'dock4':  {tmp:38.2,label:'Dock Bay 4',type:'dock'},
+      'staging':{tmp:68.0,label:'Staging Area',type:'floor'},
+      'floor_a':{tmp:72.0,label:'Floor Zone A',type:'floor'},
+      'floor_b':{tmp:74.5,label:'Floor Zone B',type:'floor'},
+      'floor_c':{tmp:71.8,label:'Floor Zone C',type:'floor'},
+      'cold_a': {tmp:-18.2,label:'Cold Storage A',type:'cold'},
+      'cold_b': {tmp:-17.8,label:'Cold Storage B',type:'cold'},
+      'freezer':{tmp:-4.0,label:'Freezer Room',type:'cold'},
+      'office_w':{tmp:70.5,label:'Office / Break',type:'office'},
+      'charger': {tmp:72.0,label:'Charger Station',type:'elec'},
+      'sprinkler':{tmp:65.0,label:'Sprinkler Rm',type:'mech'},
+      'boiler_w':{tmp:183.5,label:'Boiler Room',type:'mech'},
+      'it_closet':{tmp:74.5,label:'IT Closet',type:'idf'},
+    },
+    svg:function(zones){
+      function wc(id){var z=zones[id];if(!z)return'dim';
+        if(z.type==='cold')return z.tmp>-16?'crit':z.tmp>-18?'warn':'ok';
+        if(z.type==='dock')return z.tmp<36?'crit':z.tmp<40?'warn':'ok';
+        if(z.type==='mech')return z.tmp>190?'crit':z.tmp>180?'warn':'ok';
+        return z.tmp>78?'crit':z.tmp>73?'warn':'ok';}
+      function wv(id){var z=zones[id];if(!z)return'—';return z.tmp.toFixed(1)+'°F';}
+      return '<svg class="fp-svg" viewBox="0 0 820 480" xmlns="http://www.w3.org/2000/svg">'+
+        '<rect x="8" y="8" width="804" height="464" class="struct-fill" rx="3"/>'+
+        // loading docks
+        '<rect x="18" y="18" width="784" height="12" class="corridor-fill"/>'+
+        '<text class="struct-label" x="410" y="28" text-anchor="middle">LOADING DOCK BAYS — HEATED</text>'+
+        zone(18,38,184,80,'dock1',wc('dock1'),wv('dock1'),'','DOCK BAY 1')+
+        zone(212,38,184,80,'dock2',wc('dock2'),wv('dock2'),'','DOCK BAY 2')+
+        zone(406,38,184,80,'dock3',wc('dock3'),wv('dock3'),'','DOCK BAY 3')+
+        zone(600,38,212,80,'dock4',wc('dock4'),wv('dock4'),'','DOCK BAY 4')+
+        // main floor
+        '<rect x="18" y="128" width="784" height="10" class="corridor-fill"/>'+
+        '<text class="struct-label" x="410" y="137" text-anchor="middle">WAREHOUSE FLOOR</text>'+
+        zone(18,148,240,80,'staging',wc('staging'),wv('staging'),'','STAGING AREA')+
+        zone(268,148,170,80,'floor_a',wc('floor_a'),wv('floor_a'),'','ZONE A')+
+        zone(448,148,170,80,'floor_b',wc('floor_b'),wv('floor_b'),'','ZONE B')+
+        zone(628,148,184,80,'floor_c',wc('floor_c'),wv('floor_c'),'','ZONE C')+
+        // cold storage
+        '<rect x="18" y="238" width="784" height="10" class="corridor-fill"/>'+
+        '<text class="struct-label" x="410" y="247" text-anchor="middle">COLD STORAGE & FREEZER</text>'+
+        zone(18,258,260,80,'cold_a',wc('cold_a'),wv('cold_a'),'','COLD STORAGE A')+
+        zone(288,258,260,80,'cold_b',wc('cold_b'),wv('cold_b'),'','COLD STORAGE B')+
+        zone(558,258,254,80,'freezer',wc('freezer'),wv('freezer'),'','FREEZER ROOM')+
+        // support
+        '<rect x="18" y="348" width="784" height="10" class="corridor-fill"/>'+
+        zone(18,368,180,80,'office_w',wc('office_w'),wv('office_w'),'','OFFICE / BREAK')+
+        zone(208,368,160,80,'charger',wc('charger'),wv('charger'),'','CHARGER STATION')+
+        zone(378,368,140,80,'sprinkler',wc('sprinkler'),wv('sprinkler'),'','SPRINKLER RM')+
+        zone(528,368,160,80,'boiler_w',wc('boiler_w'),wv('boiler_w'),'','BOILER ROOM')+
+        zone(698,368,114,80,'it_closet',wc('it_closet'),wv('it_closet'),'','IT CLOSET')+
+        '<text class="struct-label" x="410" y="468" text-anchor="middle">DISTRIBUTION WAREHOUSE & COLD STORAGE FACILITY</text>'+
+        '</svg>';
+    },
+    alarms:[
+      {zone:'Dock Bay 4',desc:'Bay temp below setpoint',val:'38.2°F / limit 40°F',cls:'crit',time:'16:41:12'},
+      {zone:'Boiler Room',desc:'Supply water below setpoint',val:'183.5°F / setpoint 185°F',cls:'warn',time:'16:39:44'},
+      {zone:'Cold Storage B',desc:'Temp rising toward limit',val:'-17.8°F',cls:'warn',time:'16:37:20'},
+    ]
+  },
+
 };
 
-var alarmLog = [];
-var alarmInProgress = false;
-var MAX_ALARM_LOG = 100;
-
-// ─── WebSocket ───────────────────────────────────────────────────────────────
-var WS_URL = "wss://arbiter-iq7x.onrender.com/ws/alarms";
-var ws = null;
-var reconnectTimer = null;
-
-function formatTime(isoStr) {
-  try { return new Date(isoStr).toTimeString().slice(0, 8); }
-  catch (e) { return '--:--:--'; }
+// shared zone SVG builder
+function zone(x,y,w,h,id,cls,val,sub,label){
+  return '<g class="zone-room" id="zone-'+id+'">'+
+    '<rect class="zone-bg '+cls+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="2"/>'+
+    '<text class="zone-label" x="'+(x+w/2)+'" y="'+(y+h*0.32)+'" text-anchor="middle">'+label+'</text>'+
+    '<text class="zone-value" x="'+(x+w/2)+'" y="'+(y+h*0.58)+'" text-anchor="middle">'+val+'</text>'+
+    (sub?'<text class="zone-sub" x="'+(x+w/2)+'" y="'+(y+h*0.76)+'" text-anchor="middle">'+sub+'</text>':'')+
+    '</g>';
 }
 
-function formatValue(alarm) {
-  if (alarm.value == null) return alarm.state;
-  if (typeof alarm.value === 'number') return alarm.value.toFixed(1) + (alarm.unit ? ' ' + alarm.unit : '');
-  return String(alarm.value) + (alarm.unit ? ' ' + alarm.unit : '');
-}
+// ── RENDER ────────────────────────────────────────────────────────────────────
+var activeBldg='legion';
 
-function wsAlarmToLog(a) {
-  // Extract zone id from point name like "Gallery 2-05 RH" or "SpaceRH"
-  var zoneMatch = a.point ? a.point.match(/(\d-\d{2})/) : null;
-  return {
-    time: formatTime(a.timestamp),
-    zone: zoneMatch ? zoneMatch[1] : '',
-    building: a.building || '',
-    name: a.description || a.point,
-    value: formatValue(a),
-    severity: a.severity === 'CRITICAL' ? 'CRITICAL' : (a.severity === 'WARNING' ? 'WARNING' : 'INFO'),
-    active: a.state === 'ACTIVE',
-    raw: a,
-  };
-}
+function render(id){
+  activeBldg=id;
+  var b=BUILDINGS[id];
+  if(!b)return;
 
-function updateZoneFromAlarm(alarm) {
-  // Update gallery zone RH from live alarm data
-  if (!alarm.point) return;
-  var m = alarm.point.match(/Gallery (\d-\d{2}) RH/);
-  if (m && ZONES[m[1]] && typeof alarm.value === 'number') {
-    ZONES[m[1]].rh = alarm.value;
-    renderFloorPlan();
-  }
-}
+  document.getElementById('nav-bldg').textContent=b.name;
+  document.getElementById('fp-title').textContent='// '+b.title;
+  document.getElementById('fp-subtitle').textContent=b.subtitle;
 
-function handleAlarmEvent(alarm, animate) {
-  var entry = wsAlarmToLog(alarm);
-  alarmLog.unshift(entry);
-  if (alarmLog.length > MAX_ALARM_LOG) alarmLog.length = MAX_ALARM_LOG;
+  // status bar
+  var sb=document.getElementById('status-bar');
+  sb.innerHTML=b.status.map(function(s){
+    return '<div class="sb-cell"><div class="sb-label">'+s.label+'</div><div class="sb-val '+s.cls+'">'+s.val+'</div></div>';
+  }).join('');
 
-  updateZoneFromAlarm(alarm);
+  // floor plan
+  document.getElementById('fp-wrap').innerHTML=b.svg(b.zones);
 
-  if (animate) {
-    alarmInProgress = true;
-    renderAlarms();
-    setTimeout(function() { alarmInProgress = false; }, 1000);
+  // legend
+  document.getElementById('legend').innerHTML=b.legend.map(function(l){
+    return '<div class="legend-item"><div class="ld '+l.cls+'"></div>'+l.label+'</div>';
+  }).join('');
+
+  // alarm list
+  var al=document.getElementById('alarm-list');
+  var crit=0,warn=0,clr=0;
+  if(!b.alarms||!b.alarms.length){
+    al.innerHTML='<div class="alarm-empty">No active alarms</div>';
   } else {
-    renderAlarms();
+    al.innerHTML=b.alarms.map(function(a){
+      if(a.cls==='crit')crit++;
+      else if(a.cls==='warn')warn++;
+      else clr++;
+      return '<div class="alarm-item '+a.cls+'">'+
+        '<div class="ai-zone">'+a.zone+'</div>'+
+        '<div class="ai-desc">'+a.desc+'</div>'+
+        '<div class="ai-val">'+a.val+'</div>'+
+        '<div class="ai-time">'+a.time+'</div>'+
+        '</div>';
+    }).join('');
   }
+  document.getElementById('cnt-crit').textContent=crit;
+  document.getElementById('cnt-warn').textContent=warn;
+  document.getElementById('cnt-clr').textContent=clr;
 }
 
-function handleHistory(alarms) {
-  alarmLog = [];
-  for (var i = 0; i < alarms.length; i++) {
-    alarmLog.push(wsAlarmToLog(alarms[i]));
-    updateZoneFromAlarm(alarms[i]);
-  }
-  renderAlarms();
-  renderFloorPlan();
-}
-
-function updateLiveIndicator(connected) {
-  var el = document.querySelector('.live-indicator');
-  if (!el) return;
-  el.style.color = connected ? 'var(--ok)' : 'var(--critical)';
-  var dot = el.querySelector('.live-dot');
-  if (dot) dot.style.background = connected ? 'var(--ok)' : 'var(--critical)';
-}
-
-function connectWS() {
-  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
-
-  ws = new WebSocket(WS_URL);
-
-  ws.onopen = function() {
-    updateLiveIndicator(true);
-    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
-  };
-
-  ws.onmessage = function(e) {
-    var msg;
-    try { msg = JSON.parse(e.data); } catch (_) { return; }
-
-    if (msg.type === 'history' && Array.isArray(msg.alarms)) {
-      handleHistory(msg.alarms);
-    } else if (msg.id && msg.timestamp) {
-      handleAlarmEvent(msg, true);
-    }
-  };
-
-  ws.onclose = function() {
-    updateLiveIndicator(false);
-    reconnectTimer = setTimeout(connectWS, 3000);
-  };
-
-  ws.onerror = function() { ws.close(); };
-}
-
-setInterval(function() {
-  if (ws && ws.readyState === WebSocket.OPEN) ws.send('ping');
-}, 30000);
-
-// ─── Clock ───────────────────────────────────────────────────────────────────
-function updateClock() {
-  document.getElementById('nav-time').textContent = new Date().toTimeString().slice(0,8);
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-// ─── Zone state helper ───────────────────────────────────────────────────────
-function zoneState(rh) {
-  if (rh >= 60.0) return 'state-alarm';
-  if (rh >= 55.0) return 'state-warn';
-  return 'state-ok';
-}
-
-function zoneStateLabel(rh) {
-  if (rh >= 60.0) return { text: 'ALARM — Out of Range High', color: 'var(--critical)' };
-  if (rh >= 55.0) return { text: 'ELEVATED — approaching limit', color: 'var(--warning)' };
-  return { text: 'NORMAL', color: 'var(--ok)' };
-}
-
-// ─── Render floor plan ───────────────────────────────────────────────────────
-function renderFloorPlan() {
-  Object.keys(ZONES).forEach(function(id) {
-    var z = ZONES[id];
-    var key = id.replace('-', '');
-    var group = document.getElementById('zone-2' + key.slice(1));
-    var rhEl  = document.getElementById('rh-' + key);
-    var tmpEl = document.getElementById('tmp-' + key);
-
-    if (!group) return;
-
-    group.classList.remove('state-ok', 'state-warn', 'state-alarm');
-    group.classList.add(zoneState(z.rh));
-
-    if (rhEl)  rhEl.textContent  = z.rh.toFixed(1) + '%';
-    if (tmpEl) tmpEl.textContent = z.tmp.toFixed(1) + '°F';
-  });
-}
-
-// ─── Render alarm list ────────────────────────────────────────────────────────
-function renderAlarms() {
-  var list = document.getElementById('alarm-list');
-  list.innerHTML = '';
-
-  var crits = 0, warns = 0, cleared = 0;
-
-  alarmLog.forEach(function(a, i) {
-    if (a.severity === 'CRITICAL') {
-      if (a.active) crits++; else cleared++;
-    } else if (a.severity === 'WARNING') {
-      if (a.active) warns++; else cleared++;
-    } else {
-      cleared++;
-    }
-
-    var el = document.createElement('div');
-    el.className = 'alarm-item' + (i === 0 && alarmInProgress ? ' is-new' : '');
-
-    var bc = a.active
-      ? (a.severity === 'CRITICAL' ? 'badge-critical' : 'badge-warning')
-      : 'badge-ok';
-    var bt = a.active ? a.severity : 'CLEARED';
-
-    var bldgTag = a.building
-      ? '<span style="font-family:var(--mono);font-size:9px;letter-spacing:0.08em;color:var(--accent);opacity:0.7;">' + a.building.toUpperCase() + '</span> '
-      : '';
-
-    el.innerHTML =
-      '<div class="alarm-item-header">' +
-        '<div class="alarm-item-name">' + bldgTag + a.name + '</div>' +
-        '<div class="alarm-item-time">' + a.time + '</div>' +
-      '</div>' +
-      '<div class="alarm-item-value">' +
-        '<span>' + a.value + '</span>' +
-        '<span class="badge ' + bc + '">' + bt + '</span>' +
-      '</div>';
-    list.appendChild(el);
-  });
-
-  document.getElementById('count-crit').textContent = crits;
-  document.getElementById('count-warn').textContent = warns;
-  document.getElementById('count-clr').textContent  = cleared;
-}
-
-// ─── Tooltip ─────────────────────────────────────────────────────────────────
-var tooltip = document.getElementById('tooltip');
-
-document.querySelectorAll('.zone-room').forEach(function(el) {
-  el.addEventListener('mouseenter', function(e) {
-    var zoneId = el.dataset.zone;
-    var z = ZONES[zoneId];
-    if (!z) return;
-
-    var status = zoneStateLabel(z.rh);
-    document.getElementById('tt-name').textContent = z.label;
-    document.getElementById('tt-rh').textContent   = z.rh.toFixed(1) + ' %RH';
-    document.getElementById('tt-tmp').textContent  = z.tmp.toFixed(1) + ' °F';
-    document.getElementById('tt-rhc').textContent  = z.rhc.toFixed(1) + '%';
-    var ttStatus = document.getElementById('tt-status');
-    ttStatus.textContent  = status.text;
-    ttStatus.style.color  = status.color;
-
-    tooltip.classList.add('visible');
-  });
-
-  el.addEventListener('mousemove', function(e) {
-    tooltip.style.left = (e.clientX + 16) + 'px';
-    tooltip.style.top  = (e.clientY - 10) + 'px';
-  });
-
-  el.addEventListener('mouseleave', function() {
-    tooltip.classList.remove('visible');
+// tab clicks
+document.querySelectorAll('.bldg-tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelector('.bldg-tab.active').classList.remove('active');
+    t.classList.add('active');
+    render(t.dataset.bldg);
   });
 });
 
-function selectZone(id) {
-  // Could expand to show zone detail panel
+// WebSocket
+var WS_URL='wss://arbiter-iq7x.onrender.com/ws/alarms';
+var ws=null,reconnectTimer=null;
+function connectWS(){
+  if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING))return;
+  ws=new WebSocket(WS_URL);
+  ws.onopen=function(){if(reconnectTimer){clearTimeout(reconnectTimer);reconnectTimer=null;}};
+  ws.onclose=function(){reconnectTimer=setTimeout(connectWS,3000);};
+  ws.onerror=function(){ws.close();};
 }
-
-// ─── Initial render + connect ─────────────────────────────────────────────────
-renderFloorPlan();
-renderAlarms();
+setInterval(function(){if(ws&&ws.readyState===WebSocket.OPEN)ws.send('ping');},30000);
 connectWS();
+
+// init
+render('legion');
 </script>
 </body>
 </html>

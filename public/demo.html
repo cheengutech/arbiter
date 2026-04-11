@@ -6,28 +6,39 @@
 <title>Arbiter — Multi-Building Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#010409;--bg2:#04080f;--bg3:#060c18;
   --border:rgba(0,180,255,0.08);--border2:rgba(0,180,255,0.15);--border3:rgba(0,180,255,0.25);
-  --text:#d8eeff;--muted:#2a4a6a;--dim:#0d1e30;
+  --text:#e8f4ff;--muted:#6a9abf;--dim:#2a5070;
   --blue:#4a9eff;--blue2:#7ec8ff;--cyan:#00e5ff;
   --crit:#ff4466;--warn:#ffaa40;--ok:#00e5a0;
-  --mono:'IBM Plex Mono',monospace;--serif:'Instrument Serif',serif;--sans:'IBM Plex Sans',sans-serif;
+  --mono:'IBM Plex Mono',monospace;--serif:'Barlow Condensed',sans-serif;--sans:'IBM Plex Sans',sans-serif;
 }
 html,body{background:var(--bg);color:var(--text);font-family:var(--mono);height:100%;overflow:hidden}
 body{display:flex;flex-direction:column;min-height:100vh}
 
-nav{display:flex;justify-content:space-between;align-items:center;padding:14px 32px;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(1,4,9,0.96);position:relative;z-index:20}
-.nav-l{display:flex;align-items:center;gap:20px}
-.logo{font-size:13px;font-weight:500;letter-spacing:.14em;color:var(--blue2);text-decoration:none}
+nav{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 40px;border-bottom:1px solid var(--border);
+  flex-shrink:0;background:rgba(1,4,9,0.96);
+  backdrop-filter:blur(8px);position:relative;z-index:20;
+}
+.nav-l{display:flex;align-items:center;gap:28px}
+.logo{font-size:22px;font-weight:500;letter-spacing:.14em;color:var(--blue2);text-decoration:none}
 .logo span{color:var(--dim)}
 .nav-link{font-size:10px;letter-spacing:.12em;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color .15s}
 .nav-link:hover{color:var(--text)}
-.nav-link.active{color:var(--blue);border-bottom:1px solid var(--blue);padding-bottom:1px}
-.nav-r{display:flex;align-items:center;gap:16px}
+.nav-link.active{color:var(--blue);border-bottom:1px solid var(--blue);padding-bottom:2px}
+.nav-cta{
+  font-size:10px;letter-spacing:.08em;color:var(--bg) !important;
+  background:var(--blue);padding:7px 16px;font-weight:500;
+  text-decoration:none;transition:background .2s;
+}
+.nav-cta:hover{background:var(--blue2) !important}
+.nav-r{display:flex;align-items:center;gap:20px}
 .live-ind{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.1em}
 .live-ind.on{color:var(--ok)}.live-ind.off{color:var(--crit)}
 .live-dot{width:5px;height:5px;border-radius:50%}
@@ -36,14 +47,36 @@ nav{display:flex;justify-content:space-between;align-items:center;padding:14px 3
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .nav-time{font-size:11px;color:var(--dim)}
 
-.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tab{font-size:10px;letter-spacing:.1em;color:var(--muted);padding:12px 24px;cursor:pointer;white-space:nowrap;text-transform:uppercase;border-bottom:2px solid transparent;transition:all .2s;user-select:none}
-.tab:hover{color:var(--text);background:var(--bg2)}
-.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+/* eyebrow above tabs */
+.demo-eyebrow{
+  padding:10px 40px;border-bottom:1px solid var(--border);
+  background:var(--bg2);flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.demo-eyebrow-label{
+  font-size:9px;letter-spacing:.2em;color:var(--blue);
+  text-transform:uppercase;display:flex;align-items:center;gap:8px;
+}
+.demo-eyebrow-label::before{content:'';width:16px;height:1px;background:var(--blue);display:inline-block}
+.demo-eyebrow-sub{font-size:9px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
 
-.toggle-bar{display:flex;align-items:center;justify-content:center;gap:16px;padding:12px 32px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2)}
-.toggle-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;background:var(--bg)}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  font-size:11px;letter-spacing:.1em;color:var(--muted);
+  padding:14px 28px;cursor:pointer;white-space:nowrap;
+  text-transform:uppercase;border-bottom:2px solid transparent;
+  transition:all .2s;user-select:none;font-weight:500;
+}
+.tab:hover{color:var(--text);background:var(--bg2)}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);background:var(--bg2)}
+
+.toggle-bar{
+  display:flex;align-items:center;justify-content:center;
+  gap:20px;padding:14px 40px;border-bottom:1px solid var(--border);
+  flex-shrink:0;background:var(--bg);
+}
+.toggle-lbl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:500}
 .toggle-lbl.off{color:var(--crit)}.toggle-lbl.on{color:var(--ok)}
 .toggle-pill{width:54px;height:26px;border-radius:13px;background:rgba(255,68,102,0.15);border:1px solid rgba(255,68,102,0.25);cursor:pointer;position:relative;transition:all .4s}
 .toggle-pill.active{background:rgba(0,229,160,0.15);border-color:rgba(0,229,160,0.25)}
@@ -213,12 +246,19 @@ nav{display:flex;justify-content:space-between;align-items:center;padding:14px 3
     <a class="nav-link" href="/">Home</a>
     <a class="nav-link" href="/dashboard">Dashboard</a>
     <a class="nav-link active" href="/demo">Demo</a>
+    <a class="nav-link" href="/#scale">Scale</a>
   </div>
   <div class="nav-r">
     <div class="live-ind on" id="live-ind"><div class="live-dot"></div><span id="live-txt">LIVE</span></div>
     <div class="nav-time" id="nav-time">--:--:--</div>
+    <a class="nav-cta" href="/#contact">Request access</a>
   </div>
 </nav>
+
+<div class="demo-eyebrow">
+  <div class="demo-eyebrow-label">Multi-building alarm intelligence demo</div>
+  <div class="demo-eyebrow-sub">Toggle Arbiter AI to see noise filtered in real time</div>
+</div>
 
 <div class="tabs" id="tabs">
   <div class="tab active" data-building="Legion of Honor">Legion of Honor</div>
