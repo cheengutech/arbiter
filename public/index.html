@@ -1,811 +1,576 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Arbiter — BMS Alarm Intelligence</title>
+<meta name="description" content="Arbiter filters BACnet device noise and sends one SMS when it actually matters. No dashboards to babysit. No alert storms. Just the signal.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #0a0c0f;
-    --surface: #111318;
-    --surface2: #181c23;
-    --border: rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.12);
-    --text: #e8eaf0;
-    --muted: #7a8194;
-    --accent: #e8f060;
-    --critical: #ff5c5c;
-    --warning: #ffaa40;
-    --ok: #4adf96;
-    --mono: 'IBM Plex Mono', monospace;
-    --sans: 'IBM Plex Sans', sans-serif;
-  }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-weight: 300;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-
-  nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 40px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .logo {
-    font-family: var(--mono);
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-  }
-
-  .logo span {
-    color: var(--muted);
-    font-weight: 400;
-  }
-
-  nav a {
-    font-size: 13px;
-    color: var(--muted);
-    text-decoration: none;
-    letter-spacing: 0.04em;
-    transition: color 0.2s;
-  }
-
-  nav a:hover { color: var(--text); }
-
-  .hero {
-    padding: 80px 40px 60px;
-    max-width: 800px;
-  }
-
-  .eyebrow {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    color: var(--accent);
-    text-transform: uppercase;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .eyebrow::before {
-    content: '';
-    display: inline-block;
-    width: 24px;
-    height: 1px;
-    background: var(--accent);
-  }
-
-  h1 {
-    font-size: clamp(36px, 5vw, 56px);
-    font-weight: 300;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    margin-bottom: 24px;
-  }
-
-  h1 em {
-    font-style: normal;
-    color: var(--accent);
-  }
-
-  .hero p {
-    font-size: 18px;
-    color: var(--muted);
-    max-width: 560px;
-    line-height: 1.7;
-    margin-bottom: 40px;
-  }
-
-  .cta-row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .btn-primary {
-    background: var(--accent);
-    color: #0a0c0f;
-    border: none;
-    padding: 12px 24px;
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-
-  .btn-primary:hover { opacity: 0.85; }
-
-  .btn-secondary {
-    background: transparent;
-    color: var(--text);
-    border: 1px solid var(--border2);
-    padding: 12px 24px;
-    font-family: var(--mono);
-    font-size: 13px;
-    letter-spacing: 0.06em;
-    cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
-  }
-
-  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
-
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin: 0 40px;
-  }
-
-  .section {
-    padding: 60px 40px;
-  }
-
-  .section-label {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 32px;
-  }
-
-  /* ALARM FEED */
-  .alarm-feed {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    overflow: hidden;
-  }
-
-  .feed-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .feed-title {
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-  }
-
-  .live-dot {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--ok);
-  }
-
-  .live-dot::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--ok);
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
-  .alarm-row {
-    display: grid;
-    grid-template-columns: 80px 1fr 120px 80px;
-    align-items: center;
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--border);
-    font-family: var(--mono);
-    font-size: 12px;
-    gap: 16px;
-    transition: background 0.15s;
-  }
-
-  .alarm-row:hover { background: var(--surface2); }
-  .alarm-row:last-child { border-bottom: none; }
-
-  .alarm-time { color: var(--muted); }
-  .alarm-name { color: var(--text); letter-spacing: 0.02em; }
-  .alarm-value { color: var(--muted); text-align: right; }
-
-  .badge {
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    padding: 3px 8px;
-    border-radius: 2px;
-    text-transform: uppercase;
-    text-align: center;
-  }
-
-  .badge-critical { background: rgba(255,92,92,0.12); color: var(--critical); border: 1px solid rgba(255,92,92,0.2); }
-  .badge-warning  { background: rgba(255,170,64,0.10); color: var(--warning); border: 1px solid rgba(255,170,64,0.2); }
-  .badge-ok       { background: rgba(74,223,150,0.08); color: var(--ok); border: 1px solid rgba(74,223,150,0.15); }
-
-  /* DEMO BUTTON */
-  .demo-section {
-    padding: 60px 40px;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .demo-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 40px;
-    flex-wrap: wrap;
-  }
-
-  .demo-text h2 {
-    font-size: 22px;
-    font-weight: 300;
-    margin-bottom: 8px;
-    letter-spacing: -0.01em;
-  }
-
-  .demo-text p {
-    font-size: 14px;
-    color: var(--muted);
-    max-width: 400px;
-  }
-
-  .demo-btn-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-  }
-
-  .demo-fire-btn {
-    background: transparent;
-    color: var(--critical);
-    border: 1px solid rgba(255,92,92,0.35);
-    padding: 14px 28px;
-    font-family: var(--mono);
-    font-size: 13px;
-    letter-spacing: 0.08em;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .demo-fire-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(255,92,92,0.08);
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-
-  .demo-fire-btn:hover::before { opacity: 1; }
-  .demo-fire-btn:hover { border-color: rgba(255,92,92,0.6); }
-
-  .demo-fire-btn.fired {
-    color: var(--ok);
-    border-color: rgba(74,223,150,0.35);
-    pointer-events: none;
-  }
-
-  .demo-fire-btn.fired::before { background: rgba(74,223,150,0.06); opacity: 1; }
-
-  .fire-icon {
-    width: 14px;
-    height: 14px;
-    display: inline-block;
-  }
-
-  .demo-note {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-  }
-
-  /* SMS preview */
-  .sms-preview {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    padding: 14px 18px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--muted);
-    max-width: 340px;
-    opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 0.4s, transform 0.4s;
-  }
-
-  .sms-preview.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  .sms-header {
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    color: var(--ok);
-    margin-bottom: 8px;
-    text-transform: uppercase;
-  }
-
-  .sms-body { color: var(--text); line-height: 1.5; }
-
-  /* WAITLIST */
-  .waitlist-section {
-    padding: 80px 40px;
-    max-width: 600px;
-  }
-
-  .waitlist-section h2 {
-    font-size: 28px;
-    font-weight: 300;
-    letter-spacing: -0.02em;
-    margin-bottom: 12px;
-  }
-
-  .waitlist-section p {
-    font-size: 15px;
-    color: var(--muted);
-    margin-bottom: 32px;
-  }
-
-  .form-row {
-    display: flex;
-    gap: 0;
-    margin-bottom: 16px;
-  }
-
-  .form-row input {
-    flex: 1;
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-right: none;
-    color: var(--text);
-    padding: 12px 16px;
-    font-family: var(--mono);
-    font-size: 13px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .form-row input::placeholder { color: var(--muted); }
-  .form-row input:focus { border-color: var(--accent); }
-
-  .form-row .btn-primary {
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  .form-fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .form-field label {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    color: var(--muted);
-    text-transform: uppercase;
-  }
-
-  .form-field input, .form-field select {
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    color: var(--text);
-    padding: 10px 14px;
-    font-family: var(--mono);
-    font-size: 13px;
-    outline: none;
-    transition: border-color 0.2s;
-    appearance: none;
-    width: 100%;
-  }
-
-  .form-field input::placeholder { color: var(--muted); }
-  .form-field input:focus,
-  .form-field select:focus { border-color: var(--accent); }
-
-  .form-field select option { background: var(--surface2); }
-
-  .submit-row {
-    display: flex;
-    justify-content: flex-start;
-    margin-top: 4px;
-  }
-
-  .success-msg {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--ok);
-    padding: 12px 0;
-    display: none;
-  }
-
-  /* STATS */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    margin-bottom: 60px;
-  }
-
-  .stat {
-    background: var(--bg);
-    padding: 32px 28px;
-  }
-
-  .stat-num {
-    font-family: var(--mono);
-    font-size: 32px;
-    font-weight: 400;
-    color: var(--text);
-    margin-bottom: 6px;
-    letter-spacing: -0.02em;
-  }
-
-  .stat-num span { color: var(--accent); }
-
-  .stat-label {
-    font-size: 13px;
-    color: var(--muted);
-  }
-
-  footer {
-    padding: 24px 40px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .footer-logo {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--muted);
-  }
-
-  .footer-links {
-    display: flex;
-    gap: 24px;
-  }
-
-  .footer-links a {
-    font-size: 12px;
-    color: var(--muted);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-
-  .footer-links a:hover { color: var(--text); }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .new-alarm {
-    animation: slideIn 0.4s ease forwards;
-  }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08090b;
+  --bg2:#0f1115;
+  --bg3:#151820;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.10);
+  --text:#dde1ea;
+  --muted:#5a6070;
+  --dim:#3a3f4d;
+  --amber:#f5a623;
+  --amber2:#ffd07a;
+  --crit:#e05252;
+  --warn:#f5a623;
+  --ok:#3ecf8e;
+  --mono:'IBM Plex Mono',monospace;
+  --display:'Syne',sans-serif;
+}
+html{background:var(--bg);color:var(--text);font-family:var(--mono);scroll-behavior:smooth}
+body{min-height:100vh}
+
+/* ── NAV ── */
+nav{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:18px 40px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:rgba(8,9,11,0.92);backdrop-filter:blur(8px);
+  z-index:100;
+}
+.nav-logo{font-size:13px;font-weight:500;letter-spacing:.12em;color:var(--amber)}
+.nav-logo span{color:var(--muted)}
+.nav-links{display:flex;gap:32px;align-items:center}
+.nav-links a{font-size:11px;letter-spacing:.1em;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color .15s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{
+  font-size:11px;letter-spacing:.08em;color:var(--bg) !important;
+  background:var(--amber);padding:7px 16px;
+  text-decoration:none;font-weight:500;transition:background .15s;
+}
+.nav-cta:hover{background:var(--amber2) !important}
+
+/* ── HERO ── */
+.hero{
+  padding:100px 40px 80px;
+  max-width:1100px;margin:0 auto;
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;
+}
+.tag{
+  font-size:10px;letter-spacing:.2em;color:var(--amber);
+  text-transform:uppercase;margin-bottom:20px;
+  display:flex;align-items:center;gap:8px;
+}
+.tag::before{content:'';display:inline-block;width:20px;height:1px;background:var(--amber)}
+.hero-h1{
+  font-family:var(--display);font-size:52px;font-weight:800;
+  line-height:1.05;letter-spacing:-.02em;color:#fff;margin-bottom:20px;
+}
+.hero-h1 em{font-style:normal;color:var(--amber)}
+.hero-sub{
+  font-size:14px;line-height:1.8;color:var(--muted);
+  max-width:440px;margin-bottom:36px;font-weight:400;
+}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn-primary{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--bg);background:var(--amber);
+  padding:12px 24px;border:none;cursor:pointer;
+  text-decoration:none;transition:background .15s;display:inline-block;
+}
+.btn-primary:hover{background:var(--amber2)}
+.btn-ghost{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);background:transparent;
+  padding:12px 24px;border:1px solid var(--border2);cursor:pointer;
+  text-decoration:none;transition:all .15s;display:inline-block;
+}
+.btn-ghost:hover{color:var(--text);border-color:var(--dim)}
+
+/* ── TERMINAL ── */
+.terminal{background:var(--bg2);border:1px solid var(--border2);overflow:hidden}
+.terminal-bar{
+  background:var(--bg3);padding:10px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+}
+.t-dot{width:8px;height:8px;border-radius:50%}
+.t-dot.r{background:#e05252}
+.t-dot.y{background:#f5a623}
+.t-dot.g{background:#3ecf8e}
+.terminal-title{font-size:10px;letter-spacing:.12em;color:var(--muted);margin-left:auto;text-transform:uppercase}
+.terminal-body{padding:20px}
+.t-line{font-size:12px;line-height:2;color:var(--muted)}
+.t-line .prompt{color:var(--dim)}
+.t-line .cmd{color:var(--text)}
+.t-line .ok{color:var(--ok)}
+.t-line .crit{color:var(--crit)}
+.t-line .warn{color:var(--warn)}
+.t-line .amber{color:var(--amber)}
+.t-cursor{
+  display:inline-block;width:7px;height:12px;
+  background:var(--amber);animation:blink 1s step-end infinite;
+  vertical-align:middle;
+}
+@keyframes blink{50%{opacity:0}}
+
+/* ── STATS BAR ── */
+.stats-bar{
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  display:flex;max-width:1100px;margin:0 auto;
+}
+.stat{flex:1;padding:28px 40px;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-num{font-family:var(--display);font-size:36px;font-weight:800;color:#fff;margin-bottom:4px}
+.stat-num span{font-size:20px;color:var(--amber)}
+.stat-label{font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+
+/* ── FEED SECTION ── */
+.feed-section{max-width:1100px;margin:0 auto;padding:80px 40px}
+.section-label{
+  font-size:10px;letter-spacing:.2em;color:var(--amber);
+  text-transform:uppercase;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.section-label::before{content:'';display:inline-block;width:20px;height:1px;background:var(--amber)}
+.section-h2{font-family:var(--display);font-size:32px;font-weight:800;color:#fff;margin-bottom:8px}
+.section-sub{font-size:13px;color:var(--muted);margin-bottom:40px;max-width:480px;line-height:1.8}
+
+.feed-header{
+  display:grid;
+  grid-template-columns:60px 1fr 1fr 100px 80px 120px;
+  border-bottom:1px solid var(--border2);padding:0 0 10px;
+}
+.feed-header span{font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.alarm-list{border:1px solid var(--border);overflow:hidden}
+.alarm-row{
+  display:grid;
+  grid-template-columns:60px 1fr 1fr 100px 80px 120px;
+  padding:14px 0;border-bottom:1px solid var(--border);
+  align-items:center;transition:background .15s;
+}
+.alarm-row:last-child{border-bottom:none}
+.alarm-row:hover{background:var(--bg2)}
+.alarm-row.crit{border-left:2px solid var(--crit)}
+.alarm-row.warn{border-left:2px solid var(--warn)}
+.alarm-row.low{border-left:2px solid var(--dim)}
+.sev-dot{width:7px;height:7px;border-radius:50%;margin:0 auto}
+.sev-dot.crit{background:var(--crit);box-shadow:0 0 6px var(--crit)}
+.sev-dot.warn{background:var(--warn)}
+.sev-dot.low{background:var(--dim)}
+.al-device{font-size:12px;color:var(--text);padding-right:12px}
+.al-obj{font-size:12px;color:var(--muted)}
+.al-val{font-size:12px}
+.al-val.fault{color:var(--crit);font-weight:500}
+.al-val.over{color:var(--warn)}
+.muted-badge{
+  font-size:9px;letter-spacing:.08em;color:var(--dim);
+  background:rgba(255,255,255,.04);padding:2px 6px;
+  border:1px solid var(--border);
+}
+.al-time{font-size:10px;color:var(--dim)}
+.new-alarm{animation:slideIn .4s ease forwards}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+.feed-meta{display:flex;justify-content:space-between;align-items:center;padding:14px 0 0}
+.feed-counts{display:flex;gap:20px}
+.fc{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.fc-dot{width:6px;height:6px;border-radius:50%}
+.feed-status{font-size:10px;color:var(--ok);letter-spacing:.08em;display:flex;align-items:center;gap:6px}
+.feed-status::before{
+  content:'';width:6px;height:6px;background:var(--ok);
+  border-radius:50%;display:inline-block;animation:pulse 2s ease infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── HOW IT WORKS ── */
+.how-section{
+  background:var(--bg2);
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  padding:80px 40px;
+}
+.how-inner{max-width:1100px;margin:0 auto}
+.steps{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);margin-top:40px;
+}
+.step{background:var(--bg2);padding:32px 28px}
+.step-num{font-size:11px;letter-spacing:.16em;color:var(--amber);margin-bottom:16px}
+.step-title{font-family:var(--display);font-size:17px;font-weight:700;color:#fff;margin-bottom:10px;line-height:1.2}
+.step-desc{font-size:12px;line-height:1.8;color:var(--muted)}
+
+/* ── CTA / CONTACT ── */
+.cta-section{
+  max-width:1100px;margin:0 auto;padding:80px 40px;
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;
+}
+.cta-form{display:flex;flex-direction:column;gap:12px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-input{
+  background:var(--bg2);border:1px solid var(--border2);
+  color:var(--text);font-family:var(--mono);font-size:12px;
+  padding:11px 14px;outline:none;transition:border-color .15s;width:100%;
+}
+.form-input::placeholder{color:var(--dim)}
+.form-input:focus{border-color:var(--amber)}
+.form-select{
+  background:var(--bg2);border:1px solid var(--border2);
+  color:var(--muted);font-family:var(--mono);font-size:12px;
+  padding:11px 14px;outline:none;width:100%;appearance:none;cursor:pointer;
+}
+.form-select:focus{border-color:var(--amber);color:var(--text)}
+.submit-btn{
+  background:var(--amber);color:var(--bg);
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;border:none;padding:13px;
+  cursor:pointer;font-weight:500;transition:background .15s;margin-top:4px;
+}
+.submit-btn:hover{background:var(--amber2)}
+.success-msg{
+  display:none;
+  background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);
+  padding:16px;font-size:12px;color:var(--ok);line-height:1.7;
+}
+
+/* ── SMS DEMO ── */
+.sms-demo{background:var(--bg2);border:1px solid var(--border2)}
+.sms-demo-top{padding:20px 24px;border-bottom:1px solid var(--border)}
+.sms-label{font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
+.sms-bubble{
+  background:var(--bg3);padding:14px 16px;
+  font-size:12px;line-height:1.8;color:var(--text);
+  border-left:2px solid var(--amber);
+}
+.sms-meta{font-size:10px;color:var(--dim);margin-top:8px;text-align:right}
+.sms-demo-bottom{padding:20px 24px;display:flex;gap:12px;align-items:center}
+.fire-btn{
+  background:transparent;border:1px solid var(--border2);
+  color:var(--muted);font-family:var(--mono);font-size:10px;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:10px 20px;cursor:pointer;transition:all .15s;flex:1;
+}
+.fire-btn:hover:not(.fired){border-color:var(--warn);color:var(--warn)}
+.fire-btn.fired{border-color:var(--ok);color:var(--ok)}
+.demo-note{font-size:10px;color:var(--dim);flex:1}
+
+/* ── FOOTER ── */
+footer{
+  border-top:1px solid var(--border);
+  padding:28px 40px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.footer-logo{font-size:11px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+.footer-links{display:flex;gap:24px}
+.footer-links a{font-size:11px;color:var(--dim);text-decoration:none;letter-spacing:.06em;transition:color .15s}
+.footer-links a:hover{color:var(--muted)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  nav{padding:16px 20px}
+  .nav-links{gap:16px}
+  .nav-links a:not(.nav-cta){display:none}
+  .hero{grid-template-columns:1fr;padding:60px 20px 40px;gap:40px}
+  .hero-h1{font-size:36px}
+  .stats-bar{flex-wrap:wrap}
+  .stat{flex:1 1 50%;padding:20px}
+  .feed-section{padding:60px 20px}
+  .feed-header,.alarm-row{grid-template-columns:40px 1fr 80px 60px}
+  .feed-header span:nth-child(3),.feed-header span:nth-child(5),
+  .alarm-row .al-obj,.alarm-row .muted-badge{display:none}
+  .how-section{padding:60px 20px}
+  .steps{grid-template-columns:1fr 1fr}
+  .cta-section{grid-template-columns:1fr;padding:60px 20px;gap:40px}
+  footer{padding:20px;flex-direction:column;gap:16px;text-align:center}
+}
 </style>
 </head>
 <body>
 
-  <nav>
-    <div class="logo">ARBITER<span>.to</span></div>
-    <div style="display:flex;gap:24px;align-items:center;">
-      <a href="/dashboard" style="font-family:var(--mono);font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:0.06em;">DASHBOARD</a>
-      <a href="/demo" style="font-family:var(--mono);font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:0.06em;">DEMO</a>
-      <a href="#waitlist">Request access</a>
-    </div>
-  </nav>
+<nav>
+  <div class="nav-logo">ARBITER<span>.to</span></div>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#feed">Live feed</a>
+    <a href="#contact">Contact</a>
+    <a class="nav-cta" href="#contact">Request access</a>
+  </div>
+</nav>
 
+<!-- HERO -->
 <div class="hero">
-  <div class="eyebrow">BMS Alarm Intelligence</div>
-  <h1>Stop drowning in<br><em>alarm noise.</em></h1>
-  <p>Arbiter watches your BMS around the clock, learns what actually matters, and texts you only when something needs your attention.</p>
-  <div class="cta-row">
-    <button class="btn-primary" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">JOIN WAITLIST</button>
-    <a href="/demo" class="btn-secondary" style="text-decoration:none;text-align:center;">SEE A DEMO</a>
-  </div>
-</div>
-
-<div class="divider"></div>
-
-<div class="section">
-  <div class="section-label">// live alarm feed</div>
-
-  <div class="alarm-feed" id="alarm-feed">
-    <div class="feed-header">
-      <span class="feed-title">LEGION OF HONOR — TRANE SC+</span>
-      <span class="live-dot">LIVE</span>
-    </div>
-    <div id="feed-rows">
-      <!-- populated by WebSocket -->
+  <div class="hero-left">
+    <div class="tag">BMS Alarm Intelligence</div>
+    <h1 class="hero-h1">Stop ignoring<br>your <em>alarms.</em></h1>
+    <p class="hero-sub">Arbiter filters BACnet device noise and sends one SMS when it actually matters. No dashboards to babysit. No alert storms. Just the signal.</p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="#contact">Request access</a>
+      <a class="btn-ghost" href="#feed">See live feed &rarr;</a>
     </div>
   </div>
-</div>
-
-<div class="divider"></div>
-
-<div class="section">
-  <div class="stats-row">
-    <div class="stat">
-      <div class="stat-num">97<span>%</span></div>
-      <div class="stat-label">Alarm noise filtered</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">&lt;30<span>s</span></div>
-      <div class="stat-label">Alert delivery time</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">24<span>/7</span></div>
-      <div class="stat-label">Eyes on your BMS</div>
-    </div>
-  </div>
-</div>
-
-<div class="demo-section" id="demo">
-  <div class="demo-inner">
-    <div class="demo-text">
-      <div class="section-label" style="margin-bottom:16px">// sms demo</div>
-      <h2>See what an alert looks like.</h2>
-      <p>Trigger a simulated critical alarm and get an SMS to your phone in under 30 seconds.</p>
-    </div>
-    <div class="demo-btn-wrap">
-      <button class="demo-fire-btn" id="fire-btn" onclick="fireDemo()">
-        <svg class="fire-icon" viewBox="0 0 14 14" fill="none">
-          <path d="M7 1C7 1 9.5 4 9.5 6.5C9.5 8.5 8 10 7 10C6 10 4.5 8.5 4.5 6.5C4.5 4 7 1 7 1Z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
-          <path d="M4 9.5C2.5 10.5 2 12 2 13H12C12 12 11.5 10.5 10 9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
-        </svg>
-        FIRE TEST ALARM
-      </button>
-      <span class="demo-note" id="demo-note">Sends a real SMS via Twilio</span>
-
-      <div class="sms-preview" id="sms-preview">
-        <div class="sms-header">⊕ SMS RECEIVED</div>
-        <div class="sms-body">[ARBITER] CRITICAL: Gallery SpaceRH HIGH: 64.2%RH (limit 60%)<br><br>— Legion of Honor BMS<br>14:22:08 PST</div>
+  <div class="hero-right">
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="t-dot r"></div>
+        <div class="t-dot y"></div>
+        <div class="t-dot g"></div>
+        <span class="terminal-title">Arbiter &middot; Legion of Honor &middot; Live</span>
+      </div>
+      <div class="terminal-body">
+        <div class="t-line"><span class="prompt">&rarr; </span><span class="cmd">polling SC-01 [10.10.60.5:47809]</span></div>
+        <div class="t-line"><span class="ok">&#10003; </span><span class="cmd">device 10000 &mdash; 34 objects</span></div>
+        <div class="t-line"><span class="ok">&#10003; </span><span class="cmd">device 11001 (UC600) &mdash; 48 objects</span></div>
+        <div class="t-line"><span class="ok">&#10003; </span><span class="cmd">device 11002 (DriSteem VL6) &mdash; 12 objects</span></div>
+        <div class="t-line" style="margin-top:8px"><span class="prompt">&rarr; </span><span class="cmd">evaluating 94 objects against rules</span></div>
+        <div class="t-line"><span class="warn">&#9888; </span><span class="warn">SpaceRH &mdash; 62.4% RH (limit 60%) SCORE 87</span></div>
+        <div class="t-line"><span class="crit">&#10007; </span><span class="crit">Supply Air Temp &mdash; 93.1&deg;F (limit 85&deg;F) SCORE 100</span></div>
+        <div class="t-line" style="color:var(--dim)">&nbsp;&nbsp;&#8856; CHW Pump DP &mdash; 81.2 PSI (normal range) suppressed</div>
+        <div class="t-line" style="color:var(--dim)">&nbsp;&nbsp;&#8856; Zone Temp FC-4 &mdash; 72.1&deg;F (in range) suppressed</div>
+        <div class="t-line" style="margin-top:8px"><span class="prompt">&rarr; </span><span class="amber">SMS dispatched &middot; 2 alerts &middot; 510-XXX-XXXX</span></div>
+        <div class="t-line"><span class="prompt">&rarr; </span><span class="cmd">next poll in 58s <span class="t-cursor"></span></span></div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="waitlist-section" id="waitlist">
-  <div class="eyebrow">Early access</div>
-  <h2>Get on the list.</h2>
-  <p>Arbiter is in active development at the Legion of Honor. Early access is limited to facilities engineers and building operators.</p>
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num">97<span>%</span></div>
+    <div class="stat-label">Noise filtered</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">&lt;30<span>s</span></div>
+    <div class="stat-label">SMS delivery</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">24<span>/7</span></div>
+    <div class="stat-label">BACnet polling</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">1<span> site</span></div>
+    <div class="stat-label">Live in production</div>
+  </div>
+</div>
 
-  <div class="form-fields">
-    <div class="form-field">
-      <label>Name</label>
-      <input type="text" id="f-name" placeholder="Your name">
+<!-- LIVE FEED -->
+<div class="feed-section" id="feed">
+  <div class="section-label">Live alarm stream</div>
+  <h2 class="section-h2">Prioritized. Not buried.</h2>
+  <p class="section-sub">Every alarm scored against site-specific rules. Low-value events suppressed before they reach you.</p>
+
+  <div class="feed-header">
+    <span style="text-align:center">Sev</span>
+    <span>Device</span>
+    <span>Object</span>
+    <span>Value</span>
+    <span>Status</span>
+    <span>Time</span>
+  </div>
+  <div class="alarm-list" id="alarm-list">
+    <div class="alarm-row crit">
+      <div style="text-align:center"><div class="sev-dot crit"></div></div>
+      <div class="al-device">AHU-01 (Tracer SC+)</div>
+      <div class="al-obj">Supply Air Temp</div>
+      <div class="al-val over">93.1&deg;F</div>
+      <div></div>
+      <div class="al-time">18:24:02</div>
     </div>
-    <div class="form-field">
-      <label>Email</label>
-      <input type="email" id="f-email" placeholder="you@facility.com">
+    <div class="alarm-row crit">
+      <div style="text-align:center"><div class="sev-dot crit"></div></div>
+      <div class="al-device">FCU-2-11</div>
+      <div class="al-obj">Valve Position</div>
+      <div class="al-val fault">FAULT &mdash; LEAK</div>
+      <div></div>
+      <div class="al-time">18:23:42</div>
     </div>
-    <div class="form-field">
-      <label>Facility type</label>
-      <select id="f-type">
-        <option value="">Select...</option>
-        <option>Museum / Cultural institution</option>
-        <option>Hospital / Healthcare</option>
-        <option>Commercial office</option>
-        <option>University / Campus</option>
-        <option>Government / Municipal</option>
-        <option>Other</option>
-      </select>
+    <div class="alarm-row warn">
+      <div style="text-align:center"><div class="sev-dot warn"></div></div>
+      <div class="al-device">DriSteem VL6</div>
+      <div class="al-obj">Humidity</div>
+      <div class="al-val over">62.4% RH</div>
+      <div></div>
+      <div class="al-time">18:22:15</div>
     </div>
-    <div class="form-field">
-      <label>BMS platform</label>
-      <select id="f-bms">
-        <option value="">Select...</option>
-        <option>Trane Tracer SC+</option>
-        <option>Trane Tracer Ensemble</option>
-        <option>JCI Metasys</option>
-        <option>Siemens Desigo</option>
-        <option>Honeywell EBI</option>
-        <option>Other BACnet system</option>
-      </select>
+    <div class="alarm-row warn">
+      <div style="text-align:center"><div class="sev-dot warn"></div></div>
+      <div class="al-device">Boiler-01</div>
+      <div class="al-obj">Flue Gas Temp</div>
+      <div class="al-val over">412&deg;F</div>
+      <div></div>
+      <div class="al-time">18:19:02</div>
+    </div>
+    <div class="alarm-row low">
+      <div style="text-align:center"><div class="sev-dot low"></div></div>
+      <div class="al-device" style="color:var(--muted)">CHW-PUMP-01</div>
+      <div class="al-obj" style="color:var(--dim)">Discharge Pressure</div>
+      <div class="al-val" style="color:var(--dim)">82.7 PSI</div>
+      <div><span class="muted-badge">MUTED</span></div>
+      <div class="al-time">18:18:51</div>
+    </div>
+    <div class="alarm-row low">
+      <div style="text-align:center"><div class="sev-dot low"></div></div>
+      <div class="al-device" style="color:var(--muted)">VAV-2-14 (UC600)</div>
+      <div class="al-obj" style="color:var(--dim)">Zone Temp</div>
+      <div class="al-val" style="color:var(--dim)">72.1&deg;F</div>
+      <div><span class="muted-badge">MUTED</span></div>
+      <div class="al-time">18:16:30</div>
     </div>
   </div>
-
-  <div class="submit-row">
-    <button class="btn-primary" onclick="submitWaitlist()">REQUEST ACCESS</button>
+  <div class="feed-meta">
+    <div class="feed-counts">
+      <span class="fc"><div class="fc-dot" style="background:var(--crit)"></div>2 critical</span>
+      <span class="fc"><div class="fc-dot" style="background:var(--warn)"></div>2 high</span>
+      <span class="fc"><div class="fc-dot" style="background:var(--dim)"></div>2 silenced</span>
+    </div>
+    <div class="feed-status">BACnet/IP gateway connected</div>
   </div>
-  <div class="success-msg" id="success-msg">
-    ✓ You're on the list. We'll be in touch.
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="how-section" id="how">
+  <div class="how-inner">
+    <div class="section-label">How it works</div>
+    <h2 class="section-h2">From BACnet to your phone.</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Poll BACnet devices</div>
+        <div class="step-desc">Arbiter runs on-site, reading present values from controllers every 60 seconds over native BACnet/IP.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">Score against rules</div>
+        <div class="step-desc">Each reading is evaluated against site-specific threshold rules. Events below the noise floor are suppressed before they leave the building.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Filter the noise</div>
+        <div class="step-desc">Only alarms that clear the priority threshold are forwarded. 97% of BMS chatter never reaches the engineer.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-title">SMS in under 30s</div>
+        <div class="step-desc">Actionable alerts arrive by text with device, object, value, and threshold. No app required. No login. No dashboard.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT / CTA -->
+<div class="cta-section" id="contact">
+  <div class="cta-left">
+    <div class="section-label">Early access</div>
+    <h2 class="section-h2">Built for engineers<br>in the field.</h2>
+    <p class="section-sub" style="margin-bottom:0">Arbiter is in active development at the Legion of Honor. Early access is limited to facilities engineers and building operators.</p>
+  </div>
+  <div class="cta-right">
+    <div class="sms-demo">
+      <div class="sms-demo-top">
+        <div class="sms-label">Example SMS alert</div>
+        <div class="sms-bubble" id="sms-body">
+          [ARBITER] CRITICAL: Supply Air Temp 93.1&deg;F &mdash; limit 85&deg;F<br><br>
+          AHU-01 &middot; Trane Tracer SC+<br>
+          Legion of Honor BMS &middot; 18:24:02 PST
+        </div>
+        <div class="sms-meta" id="sms-meta">Delivered in 1.2s</div>
+      </div>
+      <div class="sms-demo-bottom">
+        <button class="fire-btn" id="fire-btn" onclick="fireDemo()">&#9654; Fire demo alarm</button>
+        <span class="demo-note" id="demo-note">Triggers a simulated alarm</span>
+      </div>
+    </div>
+    <div style="margin-top:20px">
+      <div class="cta-form">
+        <div class="form-row">
+          <input class="form-input" id="f-name" type="text" placeholder="Name">
+          <input class="form-input" id="f-email" type="email" placeholder="Email">
+        </div>
+        <input class="form-input" id="f-facility" type="text" placeholder="Facility / building name">
+        <select class="form-select" id="f-bms">
+          <option value="" disabled selected>BMS platform</option>
+          <option>Trane Tracer SC+</option>
+          <option>Siemens Desigo</option>
+          <option>Johnson Controls Metasys</option>
+          <option>Honeywell EBI</option>
+          <option>Automated Logic WebCTRL</option>
+          <option>Other BACnet system</option>
+        </select>
+        <button class="submit-btn" onclick="submitForm()">Request early access</button>
+        <div class="success-msg" id="success-msg">
+          Thanks &mdash; we'll be in touch within 48 hours. Arbiter is deployed on real BMS hardware and we onboard one building at a time.
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <footer>
-  <div class="footer-logo">ARBITER — BMS ALARM INTELLIGENCE</div>
+  <div class="footer-logo">Arbiter &mdash; BMS Alarm Intelligence &middot; StakeBound LLC</div>
   <div class="footer-links">
-    <a href="#">GitHub</a>
-    <a href="#">Contact</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="mailto:brian@arbiter.to">Contact</a>
   </div>
 </footer>
 
 <script>
-// ─── WebSocket Alarm Feed ─────────────────────────────────────────────────────
-const WS_URL = "wss://arbiter-iq7x.onrender.com/ws/alarms";
-const MAX_FEED_ROWS = 50;
-let ws = null;
-let reconnectTimer = null;
-
-function formatTime(isoStr) {
-  try {
-    const d = new Date(isoStr);
-    return d.toTimeString().slice(0, 8);
-  } catch (e) {
-    return '--:--:--';
-  }
-}
-
-function badgeClass(alarm) {
-  if (alarm.state === 'CLEARED') return 'badge-ok';
-  if (alarm.severity === 'CRITICAL') return 'badge-critical';
-  return 'badge-warning';
-}
-
-function badgeText(alarm) {
-  if (alarm.state === 'CLEARED') return 'CLEARED';
-  return alarm.severity;
-}
-
-function formatValue(alarm) {
-  if (alarm.value == null) return alarm.state;
-  if (typeof alarm.value === 'number') return alarm.value.toFixed(1) + (alarm.unit ? ' ' + alarm.unit : '');
-  return String(alarm.value) + (alarm.unit ? ' ' + alarm.unit : '');
-}
-
-function createAlarmRow(alarm, animate) {
-  const row = document.createElement('div');
-  row.className = 'alarm-row' + (animate ? ' new-alarm' : '');
-  row.innerHTML =
-    '<span class="alarm-time">' + formatTime(alarm.timestamp) + '</span>' +
-    '<span class="alarm-name">' + (alarm.description || alarm.point) + '</span>' +
-    '<span class="alarm-value">' + formatValue(alarm) + '</span>' +
-    '<span class="badge ' + badgeClass(alarm) + '">' + badgeText(alarm) + '</span>';
-  return row;
-}
-
-function trimFeed() {
-  const feedRows = document.getElementById('feed-rows');
-  while (feedRows.children.length > MAX_FEED_ROWS) {
-    feedRows.removeChild(feedRows.lastChild);
-  }
-}
-
-function populateFeed(alarms) {
-  const feedRows = document.getElementById('feed-rows');
-  feedRows.innerHTML = '';
-  alarms.forEach(function(a) {
-    feedRows.appendChild(createAlarmRow(a, false));
-  });
-}
-
-function prependAlarm(alarm) {
-  const feedRows = document.getElementById('feed-rows');
-  feedRows.insertBefore(createAlarmRow(alarm, true), feedRows.firstChild);
-  trimFeed();
-}
-
-function updateLiveDot(connected) {
-  var dot = document.querySelector('.live-dot');
-  if (dot) {
-    dot.style.color = connected ? 'var(--ok)' : 'var(--critical)';
-    dot.textContent = connected ? 'LIVE' : 'OFFLINE';
-  }
-}
-
-function connectWS() {
-  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
-
-  ws = new WebSocket(WS_URL);
-
-  ws.onopen = function() {
-    updateLiveDot(true);
-    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
-  };
-
-  ws.onmessage = function(e) {
-    var msg;
-    try { msg = JSON.parse(e.data); } catch (_) { return; }
-
-    if (msg.type === 'history' && Array.isArray(msg.alarms)) {
-      populateFeed(msg.alarms);
-    } else if (msg.id && msg.timestamp) {
-      // Single alarm event
-      prependAlarm(msg);
-    }
-  };
-
-  ws.onclose = function() {
-    updateLiveDot(false);
-    reconnectTimer = setTimeout(connectWS, 3000);
-  };
-
-  ws.onerror = function() {
-    ws.close();
-  };
-}
-
-// Keep-alive ping every 30s
-setInterval(function() {
-  if (ws && ws.readyState === WebSocket.OPEN) ws.send('ping');
-}, 30000);
-
-connectWS();
-
-// ─── Demo fire button ─────────────────────────────────────────────────────────
-let demoFired = false;
+var demoDone = false;
 
 function fireDemo() {
-  if (demoFired) return;
-  demoFired = true;
+  if (demoDone) return;
+  demoDone = true;
 
-  const btn = document.getElementById('fire-btn');
-  const note = document.getElementById('demo-note');
-  const preview = document.getElementById('sms-preview');
+  var btn = document.getElementById('fire-btn');
+  var note = document.getElementById('demo-note');
+  var sms = document.getElementById('sms-body');
+  var meta = document.getElementById('sms-meta');
 
-  btn.textContent = 'ALARM FIRED...';
-  btn.classList.add('fired');
-  note.textContent = 'Sending SMS...';
+  btn.textContent = 'Firing...';
+  note.textContent = 'Dispatching SMS...';
 
   setTimeout(function() {
-    preview.classList.add('visible');
-    btn.innerHTML = '<svg class="fire-icon" viewBox="0 0 14 14" fill="none"><path d="M2 7L5.5 10.5L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> SMS SENT';
-    note.textContent = 'Alert delivered in 1.2s';
-  }, 1600);
+    var now = new Date();
+    var t = now.toTimeString().slice(0, 8);
+    var row = document.createElement('div');
+    row.className = 'alarm-row crit new-alarm';
+    row.innerHTML =
+      '<div style="text-align:center"><div class="sev-dot crit"></div></div>' +
+      '<div class="al-device">DEMO &mdash; SpaceRH</div>' +
+      '<div class="al-obj">Gallery Humidity</div>' +
+      '<div class="al-val over">64.2% RH</div>' +
+      '<div></div>' +
+      '<div class="al-time">' + t + '</div>';
+    var list = document.getElementById('alarm-list');
+    list.insertBefore(row, list.firstChild);
+  }, 600);
+
+  setTimeout(function() {
+    var now = new Date();
+    var t = now.toTimeString().slice(0, 8);
+    sms.innerHTML =
+      '[ARBITER] CRITICAL: Gallery SpaceRH 64.2% RH &mdash; limit 60%<br><br>' +
+      'DriSteem VL6 &middot; Legion of Honor BMS<br>' +
+      t + ' PST';
+    meta.textContent = 'Delivered in 0.9s';
+    btn.classList.add('fired');
+    btn.textContent = '\u2713 SMS sent';
+    note.textContent = 'Alert delivered to on-call engineer';
+  }, 1400);
 }
 
-function submitWaitlist() {
-  const name = document.getElementById('f-name').value.trim();
-  const email = document.getElementById('f-email').value.trim();
+function submitForm() {
+  var name = document.getElementById('f-name').value.trim();
+  var email = document.getElementById('f-email').value.trim();
 
   if (!name || !email) {
-    document.getElementById('f-name').style.borderColor = name ? '' : 'var(--critical)';
-    document.getElementById('f-email').style.borderColor = email ? '' : 'var(--critical)';
+    if (!name) document.getElementById('f-name').style.borderColor = 'var(--crit)';
+    if (!email) document.getElementById('f-email').style.borderColor = 'var(--crit)';
     return;
   }
 
   document.getElementById('success-msg').style.display = 'block';
-  document.querySelector('.submit-row').style.display = 'none';
+  document.querySelector('.submit-btn').style.display = 'none';
 }
 </script>
 </body>
