@@ -58,3 +58,5 @@ pip install bac0 fastapi uvicorn twilio
 - Backend: Render
 - Frontend: Vercel
 - On-site node: Raspberry Pi 4 on BMS LAN
+
+- 
